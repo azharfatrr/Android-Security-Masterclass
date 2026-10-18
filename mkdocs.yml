@@ -2,7 +2,7 @@ site_name: Android Security Masterclass
 site_description: "A Hands-on OWASP MASVS/MASTG Security Training Lab for Android Developers & Pentesters"
 repo_url: https://github.com/OWASP/Android-Security-Masterclass
 repo_name: OWASP/Android-Security-Masterclass
-site_url: https://owasp.github.io/Android-Security-Masterclass/
+site_url: https://azharfatrr.github.io/Android-Security-Masterclass/
 use_directory_urls: true
 
 theme:
