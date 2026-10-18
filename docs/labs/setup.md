@@ -112,14 +112,16 @@ Expected, a line beginning with `package:`:
 package:/data/app/~~<random>/com.hasantuncay.mobsec-<random>/base.apk
 ```
 
-Then open the app on the emulator. You should see the **🎯 MobSec Victim** dashboard with the MASVS categories (MASVS-STORAGE, MASVS-CRYPTO, and so on).
+Then open the app on the emulator. You should see the **🎯 MobSec Victim** app: the screen header reads **Vulnerability Dashboard**, and the MASVS categories (MASVS-STORAGE, MASVS-CRYPTO, and so on) fill the page.
+
+![The dashboard after a successful install](images/lab-00/dashboard.png){ width="340" }
 
 !!! note "Setup is done when"
     - `adb devices` lists your emulator as `device`
     - `adb shell pm path com.hasantuncay.mobsec` prints a `package:/data/app/...` path
     - The **🎯 MobSec Victim** app opens on the emulator
 
-When all three are true, go to [Lab 04: The Key That Never Left the Office](lab-04-hardcoded-secrets.md).
+When all three are true, go to [Lab 01: The Token That Stayed in Plain Sight](lab-01-insecure-private-storage.md).
 
 ---
 
