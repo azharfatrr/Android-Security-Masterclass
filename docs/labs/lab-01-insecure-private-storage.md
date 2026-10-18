@@ -20,7 +20,7 @@ The app stores a signed access token that authenticates the user. It should keep
 
 Make the app store the token, then find it on disk with your own commands and read the value out. Then find the app's own attempt at encryption and check where its key ended up.
 
-The app has a screen full of demo buttons. They write the data. They do not answer the question of what landed on disk, and one of them may even print a path on screen.
+The app has a screen full of demo buttons that write the data. They do not answer the question of what landed on disk, and one of them may even print a path on screen.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -191,12 +191,12 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "What happened on disk"
     This is **CWE-312: Cleartext Storage of Sensitive Information**, the core of MASWE-0001.
 
     Vector 1 wrote an OAuth-style bearer token into a Jetpack DataStore file (`files/datastore/maswe0001_v1.preferences_pb`) with no encryption applied. DataStore is a tidy container, not a safe; anyone who can read the file reads the token.
 
-    Vector 3 is the one that catches people out. The app did encrypt the record with AES, then stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Encryption where the key sits next to the data stops only the attackers who can read neither file. Anyone with the storage, which includes root malware, a forensic image, or a rooted inspection like yours, gets both halves.
+    Vector 3 is the one that catches people out. The app did encrypt the record with AES, then stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Anyone who can read the storage gets both halves, and that includes root malware, a forensic image, or a rooted inspection like yours.
 
     The module demonstrates four more storage habits on its other buttons: a key hardcoded in the app package, AES in ECB mode, a FileProvider whose path config maps far more of the filesystem than it should, and a cache file that is never deleted.
 

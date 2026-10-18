@@ -26,7 +26,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 ## B · Validation
 
-Run everything in one terminal (Git Bash on Windows). The app's result cards repeat what the demo was built to say; ignore them and build your evidence from your own commands.
+Run everything in one terminal (Git Bash on Windows). Ignore the app's result cards and work from the commands on this page.
 
 ### 1. Read the switch before you touch the app
 
@@ -182,19 +182,19 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "Why the backup scope was wide"
     This is **MASWE-0006**, covering **CWE-200** (information exposure) with **CWE-312** roots.
 
     The manifest declares `android:allowBackup="true"` and points at the stock AOSP rule files, `backup_rules.xml` and `data_extraction_rules.xml`, with every include and exclude entry still commented out. Net effect: everything the app writes into `files/`, `shared_prefs/`, and its databases is in scope for cloud Auto Backup and device-to-device transfer, and `dumpsys` confirmed the flag on your emulator.
 
-    The artifacts prove the second half. `maswe0006_local_backup_vault.db` holds `PAN=...|CVV=...` as a plain text line. `maswe0006_migration_credentials.json` holds a refresh token and a master key. `maswe0006_cloud_backup_session.xml` holds a bearer token and a personal email in preferences. A fourth vector (`4. Sensitive Data Unencrypted in Backup`) writes a customer record with a plaintext password to `maswe0006_unencrypted_customer_records.sqlite`.
+    The artifacts show what ended up in that scope. `maswe0006_local_backup_vault.db` holds `PAN=...|CVV=...` as a plain text line. `maswe0006_migration_credentials.json` holds a refresh token and a master key. `maswe0006_cloud_backup_session.xml` holds a bearer token and a personal email in preferences. A fourth vector (`4. Sensitive Data Unencrypted in Backup`) writes a customer record with a plaintext password to `maswe0006_unencrypted_customer_records.sqlite`.
 
     Why it matters:
 
     - Cloud Auto Backup runs without the app's involvement. A compromised cloud account can leak app data with no device access at all.
     - Device-to-device transfer clones credentials to a new phone, a channel that rarely gets the scrutiny of an app review.
     - `adb backup` on an attached laptop turns any unlocked workstation into an extraction point. Android 12 and newer narrow this path for normal apps (targetSdk 31 and up), so the flag and the rule files remain necessary.
-    - Card data in any of these channels means a compliance finding, not just a security one; PCI-DSS treats storage and backup together.
+    - Card data in any of these channels is also a PCI-DSS problem; the standard treats storage and backup together.
 
     What the secure app does instead:
 

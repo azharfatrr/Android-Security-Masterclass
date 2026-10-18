@@ -16,7 +16,7 @@
 
 ## A · Requirement
 
-Encryption is a promise: the output is useless to anyone without the key. The scheme, the key handling, and the randomness decide whether the promise holds, and none of that is visible from a button label.
+The point of encryption is that the output is useless to anyone without the key. Whether that holds depends on the scheme, the key handling, and the randomness, none of which shows on a button label.
 
 Your job: trigger the operations, collect what each one writes to the log, and break what can be broken. Finally you decode what the app calls encrypted text back into the original password, using nothing but your terminal.
 
@@ -26,7 +26,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 ## B · Validation
 
-Run everything in one terminal (Git Bash on Windows). The app's result cards repeat what the demo was built to say; ignore them and build your evidence from your own `adb` output.
+Run everything in one terminal (Git Bash on Windows). Ignore the app's result cards; your evidence is your own `adb` output.
 
 ### 1. Clear the log and open the module
 
@@ -71,7 +71,7 @@ The ciphertexts prove nothing on their own. Breaking them is the next three step
 
 ### 3. Break the first one: the XOR claim
 
-Vector 7 is not encryption. It takes each byte of a secret, flips it with a single constant, and Base64-encodes the result: no key setup, no randomness. Undo it in two commands.
+Vector 7 is not encryption: it flips every byte of a secret with a single constant and Base64-encodes the result, with no key and no randomness involved. Undo it in two commands.
 
 First, pull the Base64 string out of the log line into a shell variable:
 
@@ -97,7 +97,7 @@ Expected: a readable string, the same kind of password this training app keeps i
 
 ### 4. Break the second one: no randomness
 
-Vector 2 claims AES-CBC, a real cipher. Look at what it actually produces. Tap `2. Reused / Hardcoded IV (AES-CBC)` a second time, then compare the two ciphertexts:
+Vector 2 claims AES-CBC, a real cipher. Look at what it produces. Tap `2. Reused / Hardcoded IV (AES-CBC)` a second time, then compare the two ciphertexts:
 
 ```bash
 adb logcat -d -s MASWE_0007 | grep "Vector 2" | tail -n 2
@@ -195,7 +195,7 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "What each button really does"
     This is **MASWE-0007**, covering **CWE-327** (broken algorithm) with **CWE-326** (inadequate strength), **CWE-329** (predictable IV), and **CWE-323** (key reuse) roots.
 
     The module ships seven demonstrations. What the code actually does, in the same order the buttons appear:
@@ -212,12 +212,14 @@ Submit these through your training channel. No long report is needed.
 
     Why it matters:
 
-    - Deterministic encryption is not encryption in any adversarial sense. Equal ciphertexts leak equality, and chosen-plaintext tricks build on exactly that.
+    - Deterministic encryption leaks equality: equal ciphertexts tell an attacker the plaintexts matched, and chosen-plaintext attacks build on that.
     - ECB preserves structure block by block, and real data (records, images, tokens) is full of structure to preserve.
     - CBC without a MAC is one distinguishable error message away from a padding oracle.
     - A key that lives in the package is shared with everyone who installs the app.
 
-    What the secure app does instead: AES-256-GCM with a fresh random nonce per operation, separate key material per purpose, and nothing sensitive handed to the logger.
+    What the secure app does instead:
+
+    The `:app-secure` implementation uses AES-256-GCM with a fresh random nonce per operation and separate key material per purpose, and it hands nothing sensitive to the logger.
 
     Go deeper:
 

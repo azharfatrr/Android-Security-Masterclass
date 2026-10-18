@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The buttons write when you tap them; knowing what landed in each output is your work. You will triage the live log and then read a file the app writes as a "log", all with your own commands. Section E tells you exactly what to capture as proof.
+    The app writes something every time you tap. Working out what landed in each output is your job, and you will read both the live log and a log file the app keeps. Section E tells you exactly what to capture as proof.
 
 ---
 
@@ -84,7 +84,7 @@ Expected: the outgoing request line, followed by its headers. One header starts 
 !!! tip "If the grep finds nothing"
     Some logcat versions move these lines around. Try `adb logcat -d -t 600 | grep -i okhttp`, then look at the lines around the request.
 
-### 6. Find the log that is actually a file
+### 6. Find the log that never reached logcat
 
 Tap the third button: `3. Trigger Local File Leak`. Nothing appears in logcat this time. The output went somewhere more permanent:
 
@@ -142,7 +142,7 @@ Hand in:
 2. 📷 Screenshot 2: your strongest of the two other finds: the step 5 network headers or the step 6 file line.
 3. ✍️ Two or three sentences, in your own words:
    - which sensitive values ended up in which sink,
-   - why logging is a data-egress channel and not just a debugging tool,
+   - why a log is an exit route for its data, even though it was written for debugging,
    - one concrete thing an attacker or an over-curious log collector could do with the dump.
 
 Submit these through your training channel. No long report is needed.
@@ -173,24 +173,24 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "What each vector gives away"
     This is **CWE-532: Insertion of Sensitive Information into Log File**, the core of MASWE-0005.
 
     Vector 1 built a multi-line string with a master key, part of an RSA private key, a full name, a national identification number, an email, and a plaintext password, and handed it to `Log.e`. Once written, the dump is ordinary log text: readable over adb, copied into bug reports, harvested by any log-collecting pipeline on the device.
 
-    Vector 2 is the one that surprises people. An OkHttp `HttpLoggingInterceptor` was set to `Level.BODY`, so the outgoing request line and headers, including `Authorization: Bearer ...` and the CSRF token, are printed before the connection attempt. The request failing changes nothing; the credentials were already logged.
+    Vector 2 is easy to miss. An OkHttp `HttpLoggingInterceptor` was set to `Level.BODY`, so the outgoing request line and headers, including `Authorization: Bearer ...` and the CSRF token, are printed before the connection attempt. The request failing changes nothing; the credentials were already logged.
 
-    Vector 3 writes a payment failure line with a full card number and CVV to `app_debug.log` in the app's private files. It is plaintext, appended forever, never rotated and never deleted. A log file is still a file, and this one accumulates regulated data for the life of the install.
+    Vector 3 writes a payment failure line with a full card number and CVV to `app_debug.log` in the app's private files. The file is plaintext and never rotated or deleted, so the card data piles up for the life of the install.
 
     Why it matters:
 
     - Logs cross the app's trust boundary by design: crash reporters, remote logging SDKs, bug reports, and support tooling all read them.
-    - Multi-line dumps leave copies everywhere and outlive the debugging session that motivated them.
+    - A multi-line dump like this one gets copied into bug reports and log pipelines, and those copies outlive the debugging session that produced it.
     - The class in this module covers five sinks in total: the system console, the network stack, a local file, a third-party SDK payload (which logs PII, clipboard content, and message drafts), and a WebView console bridge.
 
     What the secure app does instead:
 
-    The `:app-secure` implementation routes logging through a guard that drops everything behind a remote kill switch, gates debug lines to debug builds, forces the network logger to `Level.NONE` with a redacting interceptor, writes encrypted diagnostics with the card number masked and the CVV dropped by policy, replaces raw PII with a salted PBKDF2 hash, and whitelists WebView console messages instead of forwarding them.
+    The `:app-secure` implementation routes its logging through a guard that drops everything behind a remote kill switch and gates debug lines to debug builds. The network logger is forced to `Level.NONE` with a redacting interceptor, diagnostics are encrypted with the card number masked and the CVV dropped by policy, raw PII is replaced with a salted PBKDF2 hash, and WebView console messages are whitelisted rather than forwarded.
 
     Go deeper:
 

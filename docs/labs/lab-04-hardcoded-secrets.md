@@ -124,7 +124,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0004 / CWE-798):` followe
 
 Answer these in your notes before moving on:
 
-1. ✍️ What made you sure the value you picked was a secret, and not just another variable name?
+1. ✍️ What made you sure the value you picked was a secret, and not another variable name?
 2. ✍️ Which file inside the package carried it, and why does that file end up on every device that installs the app?
 3. ✍️ What can an attacker do with the value once they have it? Name one concrete action.
 
@@ -184,10 +184,10 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "Why the secret was in the package"
     This is **CWE-798: Use of Hard-coded Credentials**.
 
-    The payment secret is a `const val` in the vulnerable repository class (`Maswe0004VulnerableRepository`). The compiler embedded its characters in `classes.dex` as plain text, which is why a keyword search on the shipped file recovered it. No decompiler, root access, or special tool was needed.
+    The payment secret is a `const val` in the vulnerable repository class (`Maswe0004VulnerableRepository`). The compiler embedded its characters in `classes.dex` as plain text, which is why a keyword search on the shipped file recovered it. Neither a decompiler nor root access was needed.
 
     Why it matters:
 

@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The app writes the data when you tell it to; the finding is yours. This time you will not need root, `run-as`, or any special flag. One plain `adb shell` reads everything. Section E tells you exactly what to capture as proof.
+    The app writes the data when you tell it to; the finding is yours. This lab needs no root and no `run-as`; every step runs in a plain `adb shell`. Section E tells you exactly what to capture as proof.
 
 ---
 
@@ -178,10 +178,10 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "Why the folder was readable"
     This is **CWE-732: Incorrect Permission Assignment for Critical Resource**, applied to storage: MASWE-0002.
 
-    Every vector in this module writes through `getExternalFilesDir()`, which lands in `/sdcard/Android/data/com.hasantuncay.mobsec/files/`. That path looks private because it names the app, but it sits on shared storage, outside the app's sandbox. The plaintext JSON held an auth token and a card number, and your plain adb shell read it without any privilege escalation. On older Android versions any app holding storage permission could read the same folder; on any device, root, a forensic pull, or USB debugging reads it.
+    Every vector in this module writes through `getExternalFilesDir()`, which lands in `/sdcard/Android/data/com.hasantuncay.mobsec/files/`. That path looks private because it names the app, but it sits on shared storage, outside the app's sandbox. The plaintext JSON held an auth token and a card number, and an ordinary adb shell read it with no privilege escalation. On older Android versions any app holding storage permission could read the same folder; on any device, root, a forensic pull, or USB debugging reads it.
 
     Vector 3 then shows the second layer: it encrypted the payload properly with AES, and wrote the 32-byte key to `maswe0002_secret.key` in the same folder. Encryption that ships its key alongside the ciphertext protects nothing. The other buttons continue the pattern: a hardcoded key, DES with the literal key `WeakKey1`, and a key derived from `ANDROID_ID`, which is stable per device and not a secret.
 
@@ -190,7 +190,7 @@ Submit these through your training channel. No long report is needed.
     - Card numbers and tokens are regulated data. PCI-DSS treats readable storage as a finding on its own.
     - A record in shared storage leaves the device easily: a file manager, a USB connection, a backup tool, or one `adb pull`.
     - Once copied, deleting the app or the file does not retract any copy.
-    - "The data was encrypted" is worth nothing when the key takes the same trip as the data.
+    - The key sits in the same folder, so encrypting the file does not slow an attacker down at all.
 
     What the secure app does instead:
 

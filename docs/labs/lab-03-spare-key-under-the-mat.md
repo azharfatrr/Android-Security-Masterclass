@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The app creates the key material when you tap its buttons; finding where the copies went is your work. You will read one copy out of a file and decode it, then catch the second copy in the system log. Section E tells you exactly what to capture as proof.
+    The app creates the key material when you tap its buttons; tracking down the copies it leaves behind is your work. Section E tells you exactly what to capture as proof.
 
 ---
 
@@ -26,7 +26,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 ## B · Validation
 
-Run everything in one terminal (Git Bash on Windows). The app's result cards explain themselves after each tap; ignore them and build your evidence from your own commands.
+Run everything in one terminal (Git Bash on Windows). Ignore the result card that follows each tap; the commands you run are what count.
 
 ### 1. Look before
 
@@ -177,7 +177,7 @@ Submit these through your training channel. No long report is needed.
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
 
-??? question "What you actually found"
+??? question "Why the key left copies behind"
     This is **MASWE-0003**, covering **CWE-312** (cleartext storage) and **CWE-321** (hardcoded cryptographic key).
 
     Vector 1 generated a fresh AES-256 key, encoded it with `Base64.DEFAULT`, and stored it in `shared_prefs/crypto_key.xml` under the name `aes_key`. The key exists as readable bytes, so the app is not protecting it; it is only keeping it tidy. Vector 3 wrote more key material to the system log with one `Log.d` call, where debug sessions, bug reports, and logging pipelines copy it around.
@@ -186,8 +186,8 @@ Submit these through your training channel. No long report is needed.
 
     Why it matters:
 
-    - A key you can copy is a key an attacker can copy. Filesystems get imaged, logs get collected, packages get unpacked.
-    - Keys outside the Keystore cannot be protected by hardware: no attestation, no non-exportability, no user authentication binding.
+    - The key sits in a preferences file and in the log, so anyone who images the device, collects the logs, or unpacks the package comes away with it.
+    - Keys outside the Keystore lose the hardware protections: attestation, non-exportability, and the option to require user authentication.
     - Rotation becomes guesswork, because you can never prove where copies ended up.
 
     What the secure app does instead:
