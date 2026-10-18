@@ -47,7 +47,9 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0005` r
 !!! note "One label lies"
     The row subtitle reads `MASWE-0005: Logging (SECURE)`. That is a bug in this training build. The screen title bar is what counts: `MASWE-0005 (VULNERABLE)`.
 
-Tap the first button: `1. Trigger System Console Leak`. If a toast complains about a missing attacker app, ignore it; the leak happens regardless.
+The module lists five vectors. This lab uses the first three; the last two belong to the SDK and WebView sinks covered in the reference page.
+
+Tap the first button: `1. Trigger System Console Leak`. If a toast complains about a missing attacker app, ignore it; it repeats on every tap, and the leak happens regardless.
 
 ### 3. Scan the log the naive way
 
@@ -67,6 +69,8 @@ adb logcat -d -t 400 | grep -A 25 "CRITICAL APP STATE DUMP"
 
 Expected: the full dump. Read it like an attacker: which lines could pay for a hotel room? The block mixes device data, personal identifiers, a password, and key material. Write down at least two values that should never have touched a log.
 
+![Step 4 in one terminal: the app-state dump with the master key and plaintext password](images/lab-05/terminal-step-4.png)
+
 ### 5. Find the leak you did not ask for
 
 Go back to the module and tap the second button: `2. Trigger Network Leak`. The request goes nowhere real, and a failure message is normal. The leak happens before any connection:
@@ -75,7 +79,9 @@ Go back to the module and tap the second button: `2. Trigger Network Leak`. The 
 adb logcat -d -t 600 | grep -A 8 "graphql/v2"
 ```
 
-Expected: the outgoing request line, followed by its headers. One header starts with `Authorization: Bearer ` and carries a signed token; another carries a CSRF token. A network library printed both because someone enabled full-body logging and nobody questioned it.
+Expected: the outgoing request line, followed by its headers. One header starts with `Authorization: Bearer ` and carries a signed token; another carries a CSRF token. A network library printed both because someone enabled full-body logging and nobody questioned it. The block ends with `--> END GET`; the failed connection (`<-- HTTP FAILED`) follows a moment later.
+
+![Step 5 in one terminal: the request line, bearer token, and CSRF token](images/lab-05/terminal-step-5.png)
 
 !!! tip "If the grep finds nothing"
     Some logcat versions move these lines around. Try `adb logcat -d -t 600 | grep -i okhttp`, then look at the lines around the request.
@@ -90,6 +96,8 @@ adb exec-out run-as com.hasantuncay.mobsec cat files/app_debug.log
 ```
 
 Expected: a file named `app_debug.log`, and inside it a line beginning `[ERROR]` that ends with `PAN: `, a card number, and `CVV: `, a three-digit code. The file is plaintext, it grows with every tap, and the app never deletes it.
+
+![Step 6 in one terminal: the log file and its plaintext payment line](images/lab-05/terminal-step-6.png)
 
 ### 7. Optional: let the project's checker confirm it
 
@@ -151,7 +159,7 @@ Submit these through your training channel. No long report is needed.
     - Verify the tag in your output first; every line carries one. It starts with `VULN_`.
 
 ??? question "Hint 2: the network grep finds nothing"
-    - The logger's tag may differ by library version. Run `adb logcat -d -t 800 | grep -i -E "okhttp|Bearer|graphql"`.
+    - The result card says `VULN_NETWORK`, but the library prints under `OkHttp`. Run `adb logcat -d -t 800 | grep -i -E "okhttp|Bearer|graphql"`.
     - The endpoint string is `api.internal.company.com`; search for that instead of the path.
     - Lines may have scrolled out; tap the button again and repeat within a few seconds.
 
