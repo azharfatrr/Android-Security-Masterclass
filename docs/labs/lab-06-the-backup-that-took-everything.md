@@ -36,7 +36,7 @@ Android tracks whether an app is in scope for backup as a flag on the installed 
 adb shell dumpsys package com.hasantuncay.mobsec | grep -i ALLOW_BACKUP
 ```
 
-Expected: one line of the form `flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ... ]` inside the package's dump. The other flags vary by build; the token `ALLOW_BACKUP` is the part that matters here. No app interaction is needed to see it.
+Expected: one or two lines of the form `flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ... ]` inside the package's dump; newer images print a matching `pkgFlags=[ ... ]` line as well. The other flags vary by build; the token `ALLOW_BACKUP` is the part that matters here. No app interaction is needed to see it.
 
 ### 2. Open the module
 
@@ -44,6 +44,8 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0006` r
 
 !!! note "One label lies"
     The row subtitle reads `MASWE-0006: Secure Implementation`. That is a bug in this training build. The screen title bar is what counts: `MASWE-0006 (VULNERABLE)`.
+
+The module lists four vectors. This lab taps three of them, in this order: the ADB backup vector, the migration vector, and the cloud backup vector. The fourth is covered in the reveal.
 
 ### 3. The file the ADB backup vector leaves
 
@@ -55,6 +57,8 @@ adb exec-out run-as com.hasantuncay.mobsec cat files/maswe0006_local_backup_vaul
 ```
 
 Expected: a new file `maswe0006_local_backup_vault.db`, and inside it one line reading `SQLITE_SIMULATION: PAN=`, a 16-digit card number, a pipe character, then `CVV: ` and three digits.
+
+![Steps 1 and 3 in one terminal: the ALLOW_BACKUP flag, the file listing, and the vault line](images/lab-06/terminal-step-1.png)
 
 !!! tip "The names promise more than the files are"
     Despite the `.db` name, the file is not a SQLite database. It is one line of plain text. Do not try to open it in a database browser; `cat` tells you everything.
@@ -88,10 +92,16 @@ This is the step where the platform gets a vote. Ask it to pack the app's data i
 adb backup -f maswe0006_loot.ab -noapk com.hasantuncay.mobsec
 ```
 
-A dialog appears on the emulator asking to back up your data. Confirm it (no password needed). Two outcomes are normal:
+A dialog appears on the emulator asking to back up your data. Confirm it (no password needed):
+
+![The Full backup confirmation dialog; tap Back up my data](images/lab-06/backup-dialog.png){ width="380" }
+
+Two outcomes are normal:
 
 - **An archive appears.** Check it with `ls -l maswe0006_loot.ab`. The first bytes are readable: `head -c 24 maswe0006_loot.ab` prints `ANDROID BACKUP`, which is the format's magic string. You now hold the app's data on your laptop.
 - **The platform refuses.** On many Android 12 and newer images, `adb backup` answers `Backup disabled` or returns an empty file. That refusal is the platform's default hardening, not your mistake. Note the exact message and move on; the finding from steps 1 through 5 does not depend on this archive.
+
+![Step 6 in one terminal: the backup command, the archive listing, and the ANDROID BACKUP header](images/lab-06/terminal-step-6.png)
 
 ### 7. Optional: let the project's checker confirm it
 
@@ -101,7 +111,7 @@ If you have the project repository on this machine, the module ships a script th
 bash features/maswe0006/poc/adb_verify.sh
 ```
 
-Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0006 / CWE-200):` followed by the backup flag line, the card data line, the session keys line, and a note about the token and email in preferences. The script confirms files from vectors 1, 2, and 4, so the report can list more than the three you created.
+Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0006 / CWE-200):` followed by the backup flag line, the card data line, the session keys line, and a note about the token and email in preferences. The script prints a bullet for each of the four files it finds in backup scope; it also reads the fourth vector's customer-records file, so tapping that vector adds a line to the report.
 
 ---
 
@@ -162,7 +172,7 @@ Submit these through your training channel. No long report is needed.
     - The on-device dialog must be confirmed. If no dialog appears, the image has the backup service disabled; that is the refusal case described in step 6.
     - If you got an archive and want to look inside, this trick often works in Git Bash:
       `( printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" ; tail -c +25 maswe0006_loot.ab ) | tar -ztvf - | head -n 30`
-      It may print warnings; what you are hunting for is your app's file names. If nothing lists, the archive header and size remain your evidence.
+      It may print warnings and exits nonzero after the list, because the truncated stream is expected; your app's file names above the error are the result. If nothing lists, the archive header and size remain your evidence.
     - Never delete the archive as "useless"; it is evidence of the channel, even when the platform refuses to make one.
 
 ---
