@@ -16,7 +16,7 @@
 
 ## A · Mission
 
-Developers trust logs. They read them while debugging, ship them in bug reports, and hand them to crash-reporting services. That trust is exactly why this module is dangerous: the app writes things into logs that should never leave its memory.
+Developers trust logs. They read them while debugging, ship them in bug reports, and hand them to crash-reporting services. That trust is what makes log leaks dangerous: the app writes things into logs that should never leave its memory.
 
 Three buttons, three different sinks. One dumps app state into the system log, one lets a network library print request headers it should hide, and one writes a payment line into a plaintext file that is never deleted.
 
@@ -79,7 +79,7 @@ Go back to the module and tap the second button: `2. Trigger Network Leak`. The 
 adb logcat -d -t 600 | grep -A 8 "graphql/v2"
 ```
 
-Expected: the outgoing request line, followed by its headers. One header starts with `Authorization: Bearer ` and carries a signed token; another carries a CSRF token. A network library printed both because someone enabled full-body logging and nobody questioned it. The block ends with `--> END GET`; the failed connection (`<-- HTTP FAILED`) follows a moment later.
+Expected: the outgoing request line, followed by its headers. One header starts with `Authorization: Bearer ` and carries a signed token; another carries a CSRF token. A network library printed both because the app enabled full-body logging. The block ends with `--> END GET`; the failed connection (`<-- HTTP FAILED`) follows a moment later.
 
 ![Step 5 in one terminal: the request line, bearer token, and CSRF token](images/lab-05/terminal-step-5.png)
 
@@ -95,7 +95,7 @@ adb shell run-as com.hasantuncay.mobsec ls -la files
 adb exec-out run-as com.hasantuncay.mobsec cat files/app_debug.log
 ```
 
-Expected: a file named `app_debug.log`, and inside it a line beginning `[ERROR]` that ends with `PAN: `, a card number, and `CVV: `, a three-digit code. The file is plaintext, it grows with every tap, and the app never deletes it.
+Expected: a file named `app_debug.log`, and inside it a line beginning `[ERROR]` that ends with `PAN: `, a card number, and `CVV: `, a three-digit code. The file is plaintext and grows with every tap; the app never deletes it.
 
 ![Step 6 in one terminal: the log file and its plaintext payment line](images/lab-05/terminal-step-6.png)
 

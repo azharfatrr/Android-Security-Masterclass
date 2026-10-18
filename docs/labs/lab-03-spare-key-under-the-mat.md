@@ -16,11 +16,11 @@
 
 ## A · Mission
 
-Android ships a place built for exactly one job: keeping cryptographic keys away from everyone, including the app that uses them. It is called the Keystore, and keys that live there never exist as readable bytes at all.
+Android ships a place built for one job: keeping cryptographic keys away from everyone, including the app that uses them. It is called the Keystore, and keys that live there never exist as readable bytes at all.
 
 This app skipped it twice. It generated an AES key and wrote a full copy into a preferences file, and it pasted more key material into the system log where a debugging session picks it up.
 
-Find both copies with your own commands, and prove that each one is real key material, not a pointer to something safer. Then explain why a copy like that defeats the point of encryption.
+Find both copies with your own commands, and prove that each one is real key material rather than a reference. Then explain why a copy like that defeats the point of encryption.
 
 Do not read the project source code. Use the installed app and your terminal.
 

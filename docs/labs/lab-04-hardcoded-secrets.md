@@ -20,7 +20,7 @@ A payment secret was baked into this app before it shipped. It sits inside the a
 
 Recover the value yourself, using only the app that is installed on your emulator and your own terminal. Then explain in your own words what an attacker could do with it.
 
-For this lab you never need to open the app on the emulator. The package is the target, and it is a fair fight.
+For this lab you never need to open the app on the emulator. The package is the target.
 
 Do not read the project source code. Attack the app the way a real attacker would, with only the package that is already on the device.
 
@@ -187,7 +187,7 @@ Submit these through your training channel. No long report is needed.
 ??? question "What you actually found"
     This is **CWE-798: Use of Hard-coded Credentials**.
 
-    The payment secret is a `const val` in the vulnerable repository class (`Maswe0004VulnerableRepository`). The compiler embedded its characters in `classes.dex` as plain text, which is why a keyword search on the shipped file recovered it. No decompiler, no root, no special tool.
+    The payment secret is a `const val` in the vulnerable repository class (`Maswe0004VulnerableRepository`). The compiler embedded its characters in `classes.dex` as plain text, which is why a keyword search on the shipped file recovered it. No decompiler, root access, or special tool was needed.
 
     Why it matters:
 

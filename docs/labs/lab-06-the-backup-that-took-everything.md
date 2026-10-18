@@ -60,8 +60,8 @@ Expected: a new file `maswe0006_local_backup_vault.db`, and inside it one line r
 
 ![Steps 1 and 3 in one terminal: the ALLOW_BACKUP flag, the file listing, and the vault line](images/lab-06/terminal-step-1.png)
 
-!!! tip "The names promise more than the files are"
-    Despite the `.db` name, the file is not a SQLite database. It is one line of plain text. Do not try to open it in a database browser; `cat` tells you everything.
+!!! tip "The `.db` file is not a database"
+    The file ends in `.db`, but it is not a SQLite database. It is one line of plain text. Do not try to open it in a database browser; `cat` tells you everything.
 
 ### 4. The file the migration vector leaves
 
@@ -71,7 +71,7 @@ Tap the third button: `3. Device-to-Device Migration`. Then:
 adb exec-out run-as com.hasantuncay.mobsec cat files/maswe0006_migration_credentials.json
 ```
 
-Expected: a JSON object with two keys. `refreshToken` holds a base64 value, and `masterKey` holds a value starting with `0x`. Phone migration is meant to move a user's life to a new device; it should not move this.
+Expected: a JSON object with two keys. `refreshToken` holds a base64 value, and `masterKey` holds a value starting with `0x`. Phone migration is meant to move a user's data to a new device; it should not move this.
 
 ### 5. The file the cloud backup vector leaves
 
@@ -121,7 +121,7 @@ Answer these in your notes before moving on:
 
 1. ✍️ The `dumpsys` flag is a setting, not a file. With that switch on and no exclusion rules, list the channels this app's data can travel through without the app ever running again.
 2. ✍️ Two files are named `.db` and `.sqlite`, and a result card promised a database browser would open them. What is really inside, based on your own output?
-3. ✍️ A backup is made by the user and belongs to the user. Explain why that is not a reason to keep card data out of the archive.
+3. ✍️ A backup is made by the user and belongs to the user. Explain why the app should still keep card data out of the archive.
 
 ---
 
@@ -193,7 +193,7 @@ Submit these through your training channel. No long report is needed.
 
     - Cloud Auto Backup runs without the app's involvement. A compromised cloud account can leak app data with no device access at all.
     - Device-to-device transfer clones credentials to a new phone, a channel that rarely gets the scrutiny of an app review.
-    - `adb backup` on an attached laptop turns any unlocked workstation into an extraction point. Android 12 and newer narrow this path for normal apps (targetSdk 31 and up), which is exactly why the flag and rules are the real fix.
+    - `adb backup` on an attached laptop turns any unlocked workstation into an extraction point. Android 12 and newer narrow this path for normal apps (targetSdk 31 and up), so the flag and the rule files remain necessary.
     - Card data in any of these channels means a compliance finding, not just a security one; PCI-DSS treats storage and backup together.
 
     What the secure app does instead:

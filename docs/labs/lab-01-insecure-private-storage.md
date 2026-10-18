@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    You work through this alone and at your own pace. The app does one thing for you here: it stores the data when you tell it to. Everything after that tap is your investigation, run with your own commands. Section E tells you exactly what to capture as proof.
+    You work through this alone and at your own pace. The app does one thing for you here: it stores the data when you tell it to. Everything after that tap is yours to investigate with your own commands. Section E tells you exactly what to capture as proof.
 
 ---
 
@@ -20,7 +20,7 @@ An access token was written to disk by this app in the clear. Nobody encrypted i
 
 Find it with your own commands and read the value out. Then find the app's own attempt at encryption, and work out why it does not protect anything either.
 
-The app has a screen full of demo buttons. They write the data. They do not answer the question of what landed on disk, and one of them may even print a path at you. That part stays yours.
+The app has a screen full of demo buttons. They write the data. They do not answer the question of what landed on disk, and one of them may even print a path on screen.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -175,7 +175,7 @@ Submit these through your training channel. No long report is needed.
     - Only buttons 1 and 3 matter for this lab. If a tap produces no visible change, tap it again and give the app a second to write.
 
 ??? question "Hint 2: storage looks empty or different from the page"
-    - List first, tap second, list again third. The point of step 1 is the snapshot; the point of step 3 is the change.
+    - List first, tap second, list again third: step 1 records the snapshot, step 3 shows the change.
     - `run-as: package not debuggable` means the release build is installed. Reinstall the debug APK from Lab 00.
     - `ls` may print `No such file or directory` for `files/datastore` until vector 1 has run once.
 
@@ -196,7 +196,7 @@ Submit these through your training channel. No long report is needed.
 
     Vector 1 wrote an OAuth-style bearer token into a Jetpack DataStore file (`files/datastore/maswe0001_v1.preferences_pb`) with no encryption applied. DataStore is a tidy container, not a safe; anyone who can read the file reads the token.
 
-    Vector 3 is the layer of depth that catches people out. The app did encrypt the record with AES, then stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Encryption where the key sits next to the data stops only the attackers who can read neither file. Anyone with the storage, which includes root malware, a forensic image, or a rooted inspection like yours, gets both halves.
+    Vector 3 is the one that catches people out. The app did encrypt the record with AES, then stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Encryption where the key sits next to the data stops only the attackers who can read neither file. Anyone with the storage, which includes root malware, a forensic image, or a rooted inspection like yours, gets both halves.
 
     The module demonstrates four more storage habits on its other buttons: a key hardcoded in the app package, AES in ECB mode, a FileProvider whose path config maps far more of the filesystem than it should, and a cache file that is never deleted.
 

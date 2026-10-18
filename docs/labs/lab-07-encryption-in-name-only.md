@@ -16,9 +16,9 @@
 
 ## A · Mission
 
-Encryption is a promise: the output is useless to anyone without the key. The log lines from this module make the opposite offer to anyone watching. Here is the ciphertext, and here is how weak the scheme around it is.
+Encryption is a promise: the output is useless to anyone without the key. This module breaks the promise: every ciphertext goes into the system log.
 
-Your job: trigger the operations, collect what the app writes to the log, and break what can be broken. The strongest proof comes at the end, when you turn what the app calls encrypted text back into the original password with nothing but your terminal.
+Your job: trigger the operations, collect what the app writes to the log, and break what can be broken. Finally you decode what the app calls encrypted text back into the original password, using nothing but your terminal.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -71,7 +71,7 @@ The ciphertexts prove nothing on their own. Breaking them is the next three step
 
 ### 3. Break the first one: the XOR claim
 
-Vector 7 is not encryption. It takes each byte of a secret, flips it with a single constant, and Base64-encodes the result: no key setup, no randomness, nothing. Undo it in two commands.
+Vector 7 is not encryption. It takes each byte of a secret, flips it with a single constant, and Base64-encodes the result: no key setup, no randomness. Undo it in two commands.
 
 First, pull the Base64 string out of the log line into a shell variable:
 
@@ -93,7 +93,7 @@ Expected: a readable string, the same kind of password this training app keeps i
 ![Step 3 in one terminal: the extraction, the decode pipeline, and the recovered plaintext](images/lab-07/terminal-step-3.png)
 
 !!! tip "Where does 0x5A come from?"
-    One constant XOR is easy to lift from the app binary (Lab 04 skills apply), and it is also the only unknown in a 256-value search: try every byte until the output reads like text. It cost you a guessable byte only because the scheme is a costume.
+    One constant XOR is easy to lift from the app binary (Lab 04 skills apply), and it is also the only unknown in a 256-value search: try every byte until the output reads like text. A one-byte secret is not much to guess.
 
 ### 4. Break the second one: no randomness
 
@@ -208,16 +208,16 @@ Submit these through your training channel. No long report is needed.
     6. One RSA-2048 pair used both to encrypt and to sign. It is generated fresh per tap, so what you saw is the anti-pattern, not a live key.
     7. XOR with `0x5A` plus Base64, the one you reversed by hand.
 
-    Every key above is a literal in the app binary. Anyone who unpacks the APK (Lab 04 territory) can lift all of them, and anyone reading the log has the ciphertexts. The outputs look scrambled, and that is what makes the pattern dangerous: it invites trust the math cannot back.
+    Every key above is a literal in the app binary. Anyone who unpacks the APK (Lab 04 territory) can lift all of them, and anyone reading the log has the ciphertexts. The outputs look scrambled, and that is what makes the pattern dangerous: looking encrypted is not the same as being encrypted.
 
     Why it matters:
 
     - Deterministic encryption is not encryption in any adversarial sense. Equal ciphertexts leak equality, and chosen-plaintext tricks build on exactly that.
     - ECB preserves structure block by block, and real data (records, images, tokens) is full of structure to preserve.
     - CBC without a MAC is one distinguishable error message away from a padding oracle.
-    - Keys that live in the package are not keys; they are constants with a kicker.
+    - A key that lives in the package is shared with everyone who installs the app.
 
-    What the secure implementation does instead: AES-256-GCM with a fresh random nonce per operation, separate key material per purpose, and nothing sensitive handed to the logger.
+    What the secure app does instead: AES-256-GCM with a fresh random nonce per operation, separate key material per purpose, and nothing sensitive handed to the logger.
 
     Go deeper:
 

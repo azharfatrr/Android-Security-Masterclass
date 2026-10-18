@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The app writes the data when you tell it to; the finding is yours. This time you will not need root, `run-as`, or any special flag. One plain `adb shell` reads everything, and that is the point of the lab. Section E tells you exactly what to capture as proof.
+    The app writes the data when you tell it to; the finding is yours. This time you will not need root, `run-as`, or any special flag. One plain `adb shell` reads everything. Section E tells you exactly what to capture as proof.
 
 ---
 
@@ -18,7 +18,7 @@
 
 In Lab 01 the app kept its files in the private sandbox, and you had to step into the app's own identity to read them. This module writes to a different place: the app's slice of shared storage, the part of the device a PC can reach over USB.
 
-A sensitive record is sitting there in plain text. Find it, read it, and copy it off the device with your own commands. You get no help beyond the emulator and adb, and you should need none.
+A sensitive record is sitting there in plain text. Find it, read it, and copy it off the device with your own commands. You get no help beyond the emulator and adb.
 
 Then find the second artifact: an encrypted file that stored its own key in the same folder, one name over.
 
@@ -72,8 +72,8 @@ Expected: a small JSON object with two fields. `auth_token` holds a value that s
 
 ![Steps 1, 3 and 4 in one terminal: the missing folder, the new file, and the JSON record](images/lab-02/terminal-steps-1-4.png)
 
-!!! tip "Notice what this read did not need"
-    No root. No `run-as`. No debug hook. Your plain adb shell user read the file as it is. That is the whole finding, and the rest of the lab just proves it from more angles.
+!!! tip "This read needed no special access"
+    The plain adb shell user read the file as it is, with no root, no `run-as`, and no debug hook.
 
     The result card may claim this only works below API 29. That sentence describes ordinary apps on a phone; an adb shell can still read the folder.
 
@@ -84,7 +84,7 @@ adb pull /sdcard/Android/data/com.hasantuncay.mobsec/files/maswe0002_plaintext.j
 cat maswe0002_plaintext.json
 ```
 
-Expected: `1 file pulled, 0 skipped.` followed by the same JSON, now sitting on your machine. Newer `adb` versions print the source path and a transfer rate around that line. One command, one copy, on a computer.
+Expected: `1 file pulled, 0 skipped.` followed by the same JSON, now sitting on your machine. Newer `adb` versions print the source path and a transfer rate around that line.
 
 ### 6. Ask the app to encrypt something
 
