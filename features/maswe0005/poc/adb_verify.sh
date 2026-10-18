@@ -1,45 +1,87 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# MASWE-0005: ADB Automated Verification Script
-# Tests whether sensitive credentials leak into system Logcat or diagnostic files
+# MASWE-0005: Terminal Proof-of-Concept & Logging Leak Audit
+#
+# Usage: bash features/maswe0005/poc/adb_verify.sh
+# Needs: adb in PATH and a connected emulator with com.hasantuncay.mobsec
+#        installed (debug build). Open the app and run the MASWE-0005 vectors
+#        (at least 1, 2, and 3) before running this script.
 # ==============================================================================
+set -uo pipefail
 
-set -e
-
-PACKAGE="com.hasantuncay.mobsec.vulnerable"
-PACKAGE_SECURE="com.hasantuncay.mobsec.secure"
+TARGET_PKG="com.hasantuncay.mobsec"
 
 echo "======================================================================"
-echo "    MASWE-0005 SENSITIVE DATA IN LOGS VERIFICATION                    "
+echo " [MASWE-0005] Sensitive Data Logging Verification (adb)"
 echo "======================================================================"
 
-echo "[*] Checking device connectivity..."
-adb devices | grep -q "device$" || { echo "[-] No connected Android device found via ADB!"; exit 1; }
-
-echo "[*] 1. Inspecting Logcat for Bearer tokens or plaintext passwords..."
-LEAKED_LOGS=$(adb logcat -d | grep -E "VULN_0005|Bearer|password|PAN|CVV" | tail -n 10 || true)
-if [ -n "${LEAKED_LOGS}" ]; then
-    echo "[!] CRITICAL FINDING (CWE-532): Plaintext credentials dumped in Logcat!"
-    echo "----------------------------------------------------------------------"
-    echo "${LEAKED_LOGS}"
-    echo "----------------------------------------------------------------------"
-else
-    echo "[+] No sensitive credential patterns detected in recent Logcat output."
+if ! command -v adb >/dev/null 2>&1; then
+    echo "[-] adb was not found in PATH."
+    exit 1
 fi
 
-echo "[*] 2. Checking unencrypted local log files in vulnerable sandbox..."
-LOCAL_LOG=$(adb shell "run-as ${PACKAGE} cat files/debug.log 2>/dev/null" || true)
-if [ -n "${LOCAL_LOG}" ]; then
-    echo "[!] CRITICAL FINDING (CWE-532 / CWE-312): Unencrypted debug.log file exists!"
-    echo "${LOCAL_LOG}"
-else
-    echo "[+] No cleartext debug.log found in vulnerable sandbox."
+if ! adb devices 2>/dev/null | grep -q "device"; then
+    echo "[-] No device or emulator connected. Start one and retry."
+    exit 1
 fi
 
-echo "[*] 3. Verifying R8 ProGuard log stripping in Secure Release APK..."
-echo "    In app-secure release variant, all android.util.Log calls are stripped"
-echo "    via ProGuard rule: -assumenosideeffects class android.util.Log { *; }"
+# Run a command inside the app's private storage. Tries the app identity first
+# (works on debug builds), then root, then a rooted adb shell.
+app_exec() {
+    local cmd="$1" out
+    out=$(adb shell "run-as $TARGET_PKG sh -c '$cmd'" 2>/dev/null) && { printf '%s\n' "$out"; return 0; }
+    out=$(adb shell "su -c 'cd /data/data/$TARGET_PKG && $cmd'" 2>/dev/null) && { printf '%s\n' "$out"; return 0; }
+    out=$(adb shell "cd /data/data/$TARGET_PKG && $cmd" 2>/dev/null) && { printf '%s\n' "$out"; return 0; }
+    return 1
+}
 
-echo "======================================================================"
-echo "    MASWE-0005 VERIFICATION COMPLETE                                 "
-echo "======================================================================"
+log_tail() {
+    adb logcat -d -t 4000 2>/dev/null | grep -a "$1" | tail -n 1 | tr -d '\r' || true
+}
+
+echo "[*] Scanning logcat for leaked credentials (vectors 1, 2, and 4)..."
+DUMP_HIT=$(log_tail "CRITICAL APP STATE DUMP")
+PASSWORD_HIT=$(log_tail "Password (Plain)")
+BEARER_HIT=$(log_tail "Authorization: Bearer")
+SDK_HIT=$(log_tail "Sending Crashlytics Payload")
+
+echo "[*] Reading files/app_debug.log (vector 3)..."
+FILE_LOG=$(app_exec "cat files/app_debug.log 2>/dev/null" || true)
+PAY_HIT=$(printf '%s' "$FILE_LOG" | grep -a "Payment processing failed" | tail -n 1 | tr -d '\r' || true)
+
+echo
+FOUND=0
+if [ -n "$DUMP_HIT" ] || [ -n "$PASSWORD_HIT" ] || [ -n "$BEARER_HIT" ] || [ -n "$SDK_HIT" ] || [ -n "$PAY_HIT" ]; then
+    FOUND=1
+fi
+
+if [ "$FOUND" = "1" ]; then
+    echo -e "\033[91m[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0005 / CWE-532):\033[0m"
+    if [ -n "$PASSWORD_HIT" ]; then
+        echo "    - Plaintext credential in the system log:"
+        echo "      $PASSWORD_HIT"
+    elif [ -n "$DUMP_HIT" ]; then
+        echo "    - App state dump in the system log:"
+        echo "      $DUMP_HIT"
+    fi
+    if [ -n "$BEARER_HIT" ]; then
+        echo "    - Network logger printed request credentials:"
+        echo "      $BEARER_HIT"
+    fi
+    if [ -n "$SDK_HIT" ]; then
+        echo "    - Third-party SDK simulator logged a PII payload (email, clipboard, drafts):"
+        echo "      $SDK_HIT"
+    fi
+    if [ -n "$PAY_HIT" ]; then
+        echo "    - Card data persisted in files/app_debug.log (plaintext, never deleted):"
+        echo "      $PAY_HIT"
+    fi
+    echo
+    echo "[*] Sensitive values cross the app boundary through logs and log files."
+    echo "    Bug reports, crash SDKs, and adb sessions all read these sinks."
+    exit 0
+else
+    echo "[✓] No MASWE-0005 artifacts found yet."
+    echo "    Open the app, run vectors 1, 2, and 3, then run this script again."
+    exit 1
+fi

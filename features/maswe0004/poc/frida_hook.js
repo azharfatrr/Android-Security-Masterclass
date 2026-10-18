@@ -3,7 +3,7 @@
  * Frida Runtime Secret Extraction & Memory Inspection Hook
  *
  * Usage:
- *   frida -U -f com.hasantuncay.mobsec.vulnerable -l frida_hook.js
+ *   frida -U -f com.hasantuncay.mobsec -l frida_hook.js
  */
 
 Java.perform(function () {

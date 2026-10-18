@@ -4,7 +4,7 @@
 # ==============================================================================
 set -euo pipefail
 
-TARGET_PKG="com.hasantuncay.mobsec.vulnerable"
+TARGET_PKG="com.hasantuncay.mobsec"
 APK_PATH="${1:-}"
 
 echo "======================================================================"
@@ -27,9 +27,9 @@ echo "[*] Analyzing APK archive: $APK_PATH"
 TEMP_DIR=$(mktemp -d)
 unzip -q "$APK_PATH" -d "$TEMP_DIR"
 
-echo "[*] Scanning DEX bytecode and strings for known secret formats..."
-# Search for Stripe, AWS, and Google API Key signatures
-FOUND_SECRETS=$(grep -rnEI "(sk_live_[0-9a-zA-Z]{24}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z-_]{35})" "$TEMP_DIR" || true)
+echo "[*] Scanning DEX bytecode and strings for secret markers..."
+# Common key formats plus the demo secret markers used by this module
+FOUND_SECRETS=$(grep -rnEao "(sk_live_[0-9a-zA-Z]{24}|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35}|mock_secret_[A-Za-z0-9_]+|BACKDOOR_TEST_KEY_[0-9]+|internal-dev-api\.[A-Za-z0-9./_-]+)" "$TEMP_DIR" || true)
 
 if [ -n "$FOUND_SECRETS" ]; then
     echo -e "\033[91m[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0004 / CWE-798):\033[0m"
