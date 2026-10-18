@@ -10,15 +10,15 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    You work through this alone and at your own pace. Nobody tells you where the secret is, and the app is not going to hand it to you. You pull the app package off your emulator and dig the value out with your own commands. Section E tells you exactly what to capture as proof.
+    You work through this alone and at your own pace. Nobody tells you where the secret is, and the app is not going to hand it to you. You pull the app package off your emulator and look through it with your own commands. Section E tells you exactly what to capture as proof.
 
 ---
 
-## A · Mission
+## A · Requirement
 
-A payment secret was baked into this app before it shipped. It sits inside the app package, where no normal user is supposed to look.
+Apps need secrets to talk to their backend, and those secrets should be fetched at runtime, not shipped inside the app package. The package goes to every device that installs the app.
 
-Recover the value yourself, using only the app that is installed on your emulator and your own terminal. Then explain in your own words what an attacker could do with it.
+Pull the app off your emulator and look through the package with your own commands. Recover the payment secret, then explain in your own words what an attacker could do with it.
 
 For this lab you never need to open the app on the emulator. The package is the target.
 
@@ -26,7 +26,7 @@ Do not read the project source code. Attack the app the way a real attacker woul
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows) and one folder that you choose.
 
@@ -88,7 +88,7 @@ Expected: a long list. The proofing build printed 488 hits, and most are identif
 
 ![Steps 4 and 5 in one terminal: the line count, the hit count, and the start of the noisy list](images/lab-04/terminal-steps-4-5.png)
 
-You are looking for a pair. One line is a name in capital letters that says what the value is, and one line is a long value that reads like a generated key. The mission is about a payment secret.
+You are looking for a pair. One line is a name in capital letters that says what the value is, and one line is a long value that reads like a generated key. This lab is about a payment secret.
 
 Write both down in a notes file. If other lines in the list also look like leaks, keep them; the payment secret is what this lab grades, and extra finds go in your description.
 
@@ -120,7 +120,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0004 / CWE-798):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -130,7 +130,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all three are true:
 
@@ -144,7 +144,7 @@ If you ran step 7, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -159,7 +159,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: step 1 or 2 fails"
     - Copy the path exactly as printed, without the `package:` prefix and without surrounding quotes.
@@ -174,12 +174,12 @@ Submit these through your training channel. No long report is needed.
 ??? question "Hint 3: step 5 is noisy or confusing"
     - Rerun step 4 if `wc -l case0004-strings.txt` did not print a large number.
     - Lines that start with `L` are library type names. Skip them.
-    - The pair you want is one name in capitals and one long value with underscores and digits. The mission says payment, so one of the names should say it too.
+    - The pair you want is one name in capitals and one long value with underscores and digits. The requirement mentions payment, so one of the names should mention it too.
     - To shrink the list without reading all of it: `grep -i "secret" case0004-strings.txt | grep -i payment`.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

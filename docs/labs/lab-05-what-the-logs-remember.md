@@ -10,23 +10,21 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The app produces the leaks when you tap its buttons; knowing what landed in each output is your work. You will triage the live log and then read a file the app writes as a "log", all with your own commands. Section E tells you exactly what to capture as proof.
+    The buttons write when you tap them; knowing what landed in each output is your work. You will triage the live log and then read a file the app writes as a "log", all with your own commands. Section E tells you exactly what to capture as proof.
 
 ---
 
-## A · Mission
+## A · Requirement
 
-Developers trust logs. They read them while debugging, ship them in bug reports, and hand them to crash-reporting services. That trust is what makes log leaks dangerous: the app writes things into logs that should never leave its memory.
+Developers trust logs. They read them while debugging, ship them in bug reports, and hand them to crash-reporting services. A log line travels far beyond the app that wrote it, and nothing sensitive belongs in one.
 
-Three buttons, three different sinks. One dumps app state into the system log, one lets a network library print request headers it should hide, and one writes a payment line into a plaintext file that is never deleted.
-
-Find all three with your own commands, and for the first one, tell the difference between noise and the values that should never be in a log at all.
+Three buttons write their output to three different places. Find each output with your own commands, and tell the difference between noise and the values that should never be in a log.
 
 Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows). The app's result cards name things for you after each tap; ignore them, because finding the output yourself is the exercise.
 
@@ -111,7 +109,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0005 / CWE-532):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -121,7 +119,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -136,7 +134,7 @@ If you ran step 7, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -151,7 +149,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: the log looks empty or the tap did nothing"
     - Tap the vector again and dump immediately. Busy emulators rotate the buffer quickly.
@@ -170,7 +168,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

@@ -14,19 +14,17 @@
 
 ---
 
-## A · Mission
+## A · Requirement
 
-In Lab 01 the app kept its files in the private sandbox, and you had to step into the app's own identity to read them. This module writes to a different place: the app's slice of shared storage, the part of the device a PC can reach over USB.
+The app keeps sensitive records on the device, and it should keep them inside its own sandbox, where other apps cannot reach. Shared storage, the part of the device a PC can reach over USB, is not a place for anything sensitive.
 
-A sensitive record is sitting there in plain text. Find it, read it, and copy it off the device with your own commands. You get no help beyond the emulator and adb.
-
-Then find the second artifact: an encrypted file that stored its own key in the same folder, one name over.
+Make the app write a record, then find what it leaves outside its sandbox and copy it off the device with your own commands. Then find the file the app encrypted and check where its key ended up.
 
 Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows) and one folder of your choice.
 
@@ -118,7 +116,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0002 / CWE-732):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -128,7 +126,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -143,7 +141,7 @@ If you ran step 8, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -158,7 +156,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: Permission denied on the folder"
     - Some emulator images restrict `/sdcard/Android/data` from the shell user. If yours does and it allows `adb root` (images without the Play Store do; Lab 00's default), run it, wait for the restart, then repeat the command.
@@ -175,7 +173,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

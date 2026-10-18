@@ -10,21 +10,21 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    Every button on this screen claims to encrypt something. Every one of those outputs lands in the system log, and the schemes behind them are weak enough that you peel three of them apart with one terminal line each. Section E tells you exactly what to capture as proof.
+    Every button on this screen claims to encrypt something. Every one of those outputs lands in the system log. Section E tells you exactly what to capture as proof.
 
 ---
 
-## A · Mission
+## A · Requirement
 
-Encryption is a promise: the output is useless to anyone without the key. This module breaks the promise: every ciphertext goes into the system log.
+Encryption is a promise: the output is useless to anyone without the key. The scheme, the key handling, and the randomness decide whether the promise holds, and none of that is visible from a button label.
 
-Your job: trigger the operations, collect what the app writes to the log, and break what can be broken. Finally you decode what the app calls encrypted text back into the original password, using nothing but your terminal.
+Your job: trigger the operations, collect what each one writes to the log, and break what can be broken. Finally you decode what the app calls encrypted text back into the original password, using nothing but your terminal.
 
 Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows). The app's result cards repeat what the demo was built to say; ignore them and build your evidence from your own `adb` output.
 
@@ -48,7 +48,7 @@ Tap these four buttons, in any order:
 - `4. ECB Mode (Penguin Attack)`
 - `7. XOR / Base64 Obfuscation`
 
-The module lists seven vectors; this lab uses the four above. Buttons 3, 5, and 6 are covered in the reveal.
+The module lists seven vectors; this lab uses the four above. Buttons 3, 5, and 6 are covered in section G.
 
 ![The MASWE-0007 screen with its seven vector buttons](images/lab-07/maswe0007-buttons.png){ width="380" }
 
@@ -129,7 +129,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0007 / CWE-327):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -139,7 +139,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -154,7 +154,7 @@ If you ran step 6, its output is an independent confirmation of the same artifac
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -170,7 +170,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: the log dump is empty"
     - The tag is `MASWE_0007` with an underscore. `-s MASWE-0007` matches nothing.
@@ -190,7 +190,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

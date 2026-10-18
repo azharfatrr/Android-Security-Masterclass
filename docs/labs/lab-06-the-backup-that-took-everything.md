@@ -10,21 +10,21 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    Modern phones move app data on their own: to the user's cloud on a schedule, to a new phone during migration, and, where the platform still allows it, to a laptop over `adb backup`. This app said yes to all of it and excluded nothing. Your job is to prove both halves from the device: the settings that allow it, and the sensitive files that are in scope. Section E tells you exactly what to capture as proof.
+    Modern phones move app data on their own: to the user's cloud on a schedule, to a new phone during migration, and, where the platform still allows it, to a laptop over `adb backup`. From the device, you will show which settings allow backup and which sensitive files are in scope. Section E tells you exactly what to capture as proof.
 
 ---
 
-## A · Mission
+## A · Requirement
 
-Backups are the quietest data channel on a phone. The user never opens an app to make one, and the data leaves without the app being asked. One manifest switch decides whether an app's data is in scope, and a list of rules decides what gets excluded. This app turned the switch on and left the exclusion list empty.
+Backups are the quietest data channel on a phone. The user never opens an app to make one, and the data leaves without the app being asked. One manifest switch decides whether an app's data is in scope, and a list of rules decides what gets excluded. Sensitive files have to be named in the exclusion rules.
 
-Prove that from your terminal: first read the platform's own record of the switch. Then make the app write a few files, find them in the locations backups cover, and read what is inside. Card data, session keys, and an email address are all in there, in the clear.
+Start from your terminal: read the platform's own record of the switch, then make the app write its files, find them in the locations backups cover, and read what is inside.
 
 Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows). The app's result cards repeat what the demo was built to say; ignore them and build your evidence from your own commands.
 
@@ -45,7 +45,7 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0006` r
 !!! note "One label lies"
     The row subtitle reads `MASWE-0006: Secure Implementation`. That is a bug in this training build. The screen title bar is what counts: `MASWE-0006 (VULNERABLE)`.
 
-The module lists four vectors. This lab taps three of them, in this order: the ADB backup vector, the migration vector, and the cloud backup vector. The fourth is covered in the reveal.
+The module lists four vectors. This lab taps three of them, in this order: the ADB backup vector, the migration vector, and the cloud backup vector. The fourth is covered in section G.
 
 ### 3. The file the ADB backup vector leaves
 
@@ -115,7 +115,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0006 / CWE-200):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -125,7 +125,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -140,7 +140,7 @@ If you ran step 7, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -156,7 +156,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: the dumpsys grep prints nothing"
     - Older images label the field `pkgFlags=`. Try `adb shell dumpsys package com.hasantuncay.mobsec | grep -i flags` and read the lines.
@@ -177,7 +177,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

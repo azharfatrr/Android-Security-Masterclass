@@ -8,11 +8,11 @@ Every lab follows the same seven sections. Change the shape only when a module g
 
 ## The shape
 
-### A · Mission
+### A · Requirement
 
-One short paragraph: what the employee is hunting and what "found" means. Name the evidence they will produce. Leave out the location, tool names that give the approach away, and any explanation of the vulnerability.
+One short paragraph giving the requirement: the protection the app is supposed to provide, in plain terms, with no sign of whether it holds. A second short paragraph says what to run against the installed app. Leave out the location, tool names that give the approach away, and any explanation of the vulnerability.
 
-### B · Steps
+### B · Validation
 
 Numbered, literal, and runnable exactly as written.
 
@@ -26,23 +26,23 @@ Numbered, literal, and runnable exactly as written.
 - The finding is the employee's own work. Route it through their own commands against the installed package or the running app. The app's built-in vector buttons and the module's `poc/` scripts may appear only after the manual finding, as confirmation or automation. A script step is marked optional when it needs the project repository.
 - When the vulnerability lives in the app file itself (hardcoded secrets, embedded files), prefer package analysis. The learner pulls the file apart and the app's screens stay closed.
 
-### C · Look & tell
+### C · Questions
 
 Three questions maximum, all requiring the employee to write something. No yes/no questions. The questions should make them state what they observed, where exactly it was, and why it matters.
 
-### D · Prove it
+### D · Finding
 
 An objective checkpoint: the same fact confirmed through two independent channels (runtime against static, app against file, vulnerable against secure). When the finding lives entirely in the app package (hardcoded secrets, embedded files), the two channels are the employee's manual extraction and an independent check of the same artifact, for example the module's script. Give the employee a table or checklist that says when the finding is complete. Leave interpretation out of it.
 
-### E · Your evidence
+### E · Evidence
 
 Exactly what gets handed in: screenshot prompts that name the artifact, plus a description template of two or three sentences. Keep it short. The evidence is the deliverable, not a report.
 
-### F · Stuck?
+### F · Hints
 
 At most three ordered hints. Hints fix the environment or the procedure and never reveal the value or the conclusion. Prefer commands the employee can run to diagnose (`adb devices`, `ls`, re-run the step) over explanations.
 
-### G · Reveal
+### G · Explanation
 
 Behind a collapsible block, guarded by "open only after your evidence":
 

@@ -14,11 +14,11 @@
 
 ---
 
-## A · Mission
+## A · Requirement
 
-An access token was written to disk by this app in the clear. Nobody encrypted it, and it did not disappear when the feature finished. It is sitting in the app's private storage right now.
+The app stores a signed access token that authenticates the user. It should keep the token where nothing outside the app can read it, and its encryption keys should be just as private.
 
-Find it with your own commands and read the value out. Then find the app's own attempt at encryption, and work out why it does not protect anything either.
+Make the app store the token, then find it on disk with your own commands and read the value out. Then find the app's own attempt at encryption and check where its key ended up.
 
 The app has a screen full of demo buttons. They write the data. They do not answer the question of what landed on disk, and one of them may even print a path on screen.
 
@@ -26,7 +26,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows). This lab needs the emulator running and the app installed.
 
@@ -127,7 +127,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0001 / CWE-312):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -137,7 +137,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -152,7 +152,7 @@ If you ran step 8, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -167,7 +167,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: the app or the buttons are not where I expect"
     - The dashboard groups modules under category cards. Expand `MASVS-STORAGE` first.
@@ -186,7 +186,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.

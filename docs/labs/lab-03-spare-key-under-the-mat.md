@@ -14,19 +14,17 @@
 
 ---
 
-## A · Mission
+## A · Requirement
 
-Android ships a place built for one job: keeping cryptographic keys away from everyone, including the app that uses them. It is called the Keystore, and keys that live there never exist as readable bytes at all.
+Android ships a place built for one job: keeping cryptographic keys away from everyone, including the app that uses them. It is called the Keystore, and keys that live there never exist as readable bytes at all. Keys an app generates belong there and nowhere else.
 
-This app skipped it twice. It generated an AES key and wrote a full copy into a preferences file, and it pasted more key material into the system log where a debugging session picks it up.
-
-Find both copies with your own commands, and prove that each one is real key material rather than a reference. Then explain why a copy like that defeats the point of encryption.
+This app makes two copies of its key material. Find both with your own commands, and prove that each one is real key material rather than a reference. Then explain why a copy like that defeats the point of encryption.
 
 Do not read the project source code. Use the installed app and your terminal.
 
 ---
 
-## B · Steps
+## B · Validation
 
 Run everything in one terminal (Git Bash on Windows). The app's result cards explain themselves after each tap; ignore them and build your evidence from your own commands.
 
@@ -116,7 +114,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0003 / CWE-312):` followe
 
 ---
 
-## C · Look & tell
+## C · Questions
 
 Answer these in your notes before moving on:
 
@@ -126,7 +124,7 @@ Answer these in your notes before moving on:
 
 ---
 
-## D · Prove it
+## D · Finding
 
 You have the finding when all four are true:
 
@@ -141,7 +139,7 @@ If you ran step 7, its output is a second, independent confirmation of the same 
 
 ---
 
-## E · Your evidence
+## E · Evidence
 
 Hand in:
 
@@ -156,7 +154,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## F · Stuck?
+## F · Hints
 
 ??? question "Hint 1: run-as or the file read fails"
     - `run-as: package not debuggable` means the release build is installed. Reinstall the debug APK from Lab 00.
@@ -174,7 +172,7 @@ Submit these through your training channel. No long report is needed.
 
 ---
 
-## G · Reveal
+## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
     Your screenshots are the evidence, not this section. Read it last.
