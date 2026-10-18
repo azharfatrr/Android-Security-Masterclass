@@ -49,7 +49,7 @@ Complete [Lab 00: Set up your lab machine](setup.md). It takes about 15 minutes 
 |---|---|---|---|---|
 | [Lab 00](setup.md) | - | Set up your lab machine | 15 min | ✅ Ready |
 | [Lab 01](lab-01-insecure-private-storage.md) | MASWE-0001 | The Token That Stayed in Plain Sight | 25 min | ✅ Ready |
-| [Lab 02](lab-02-outside-the-sandbox.md) | MASWE-0002 | Outside the Sandbox | 25 min | 🧪 Awaiting proof run |
+| [Lab 02](lab-02-outside-the-sandbox.md) | MASWE-0002 | Outside the Sandbox | 25 min | ✅ Ready |
 | [Lab 03](lab-03-spare-key-under-the-mat.md) | MASWE-0003 | The Spare Key Under the Mat | 25 min | 🧪 Awaiting proof run |
 | [Lab 04](lab-04-hardcoded-secrets.md) | MASWE-0004 | The Key That Never Left the Office | 25 min | 🧪 Awaiting proof run |
 | [Lab 05](lab-05-what-the-logs-remember.md) | MASWE-0005 | What the Logs Remember | 30 min | 🧪 Awaiting proof run |

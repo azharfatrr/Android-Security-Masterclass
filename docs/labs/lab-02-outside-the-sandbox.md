@@ -48,6 +48,10 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0002` r
 !!! note "One label lies"
     The row subtitle may read `MASWE-0002: Insecure Storage (SECURE)`. That is a bug in this training build. The screen title bar is what counts: `MASWE-0002 (VULNERABLE)`.
 
+The module lists five vectors. This lab needs the first and the third:
+
+![The MASWE-0002 screen with its five vector buttons](images/lab-02/maswe0002-buttons.png){ width="380" }
+
 Tap the first button: `1. External Storage Sensitive Data Leak`. Ignore the app's result card, and leave DOCS alone.
 
 ### 3. Look again
@@ -66,8 +70,12 @@ adb shell cat /sdcard/Android/data/com.hasantuncay.mobsec/files/maswe0002_plaint
 
 Expected: a small JSON object with two fields. `auth_token` holds a value that starts with `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9` and ends with three dots, and `pan` holds a 16-digit card number that starts with `4532`.
 
+![Steps 1, 3 and 4 in one terminal: the missing folder, the new file, and the JSON record](images/lab-02/terminal-steps-1-4.png)
+
 !!! tip "Notice what this read did not need"
     No root. No `run-as`. No debug hook. Your plain adb shell user read the file as it is. That is the whole finding, and the rest of the lab just proves it from more angles.
+
+    The result card may claim this only works below API 29. That sentence describes ordinary apps on a phone; an adb shell can still read the folder.
 
 ### 5. Take it off the device
 
@@ -76,7 +84,7 @@ adb pull /sdcard/Android/data/com.hasantuncay.mobsec/files/maswe0002_plaintext.j
 cat maswe0002_plaintext.json
 ```
 
-Expected: `1 file pulled, 0 skipped.` followed by the same JSON, now sitting on your machine. One command, one copy, on a computer.
+Expected: `1 file pulled, 0 skipped.` followed by the same JSON, now sitting on your machine. Newer `adb` versions print the source path and a transfer rate around that line. One command, one copy, on a computer.
 
 ### 6. Ask the app to encrypt something
 
@@ -95,6 +103,8 @@ adb shell od -An -tx1 /sdcard/Android/data/com.hasantuncay.mobsec/files/maswe000
 ```
 
 Expected: two lines of hex bytes, 32 in total. That is the AES key for the `.enc` file sitting next to it, written to the same shared folder. Run the same command on `maswe0002_key_on_fs.enc` if you want to see the ciphertext it protects.
+
+![Steps 6 and 7 in one terminal: the new files and the 32-byte key in hex](images/lab-02/terminal-steps-6-7.png)
 
 ### 8. Optional: let the project's checker confirm it
 
