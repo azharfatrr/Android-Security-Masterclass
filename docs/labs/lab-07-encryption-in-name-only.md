@@ -48,6 +48,10 @@ Tap these four buttons, in any order:
 - `4. ECB Mode (Penguin Attack)`
 - `7. XOR / Base64 Obfuscation`
 
+The module lists seven vectors; this lab uses the four above. Buttons 3, 5, and 6 are covered in the reveal.
+
+![The MASWE-0007 screen with its seven vector buttons](images/lab-07/maswe0007-buttons.png){ width="380" }
+
 Then dump the module's log stream:
 
 ```bash
@@ -60,6 +64,8 @@ Expected: one line per tap, each starting `Vector N:`. Note the tag: `MASWE_0007
 - Vector 2 prints a hex string for an AES-CBC operation.
 - Vector 4 prints two hex blocks joined by `B1: ... == B2: ...`.
 - Vector 7 prints a Base64 string for its "XOR encryption".
+
+![Step 2 in one terminal: the dump with the four Vector lines](images/lab-07/terminal-step-2.png)
 
 The ciphertexts prove nothing on their own. Breaking them is the next three steps.
 
@@ -84,6 +90,8 @@ printf '%s' "$B64" | base64 -d | od -An -tu1 | tr ' ' '\n' | grep . | while read
 
 Expected: a readable string, the same kind of password this training app keeps in its data classes. You just recovered the original value from text the app called encrypted, without any key. Note in your own words that it worked; keep the string out of your report text and let the screenshot carry it.
 
+![Step 3 in one terminal: the extraction, the decode pipeline, and the recovered plaintext](images/lab-07/terminal-step-3.png)
+
 !!! tip "Where does 0x5A come from?"
     One constant XOR is easy to lift from the app binary (Lab 04 skills apply), and it is also the only unknown in a 256-value search: try every byte until the output reads like text. It cost you a guessable byte only because the scheme is a costume.
 
@@ -107,6 +115,8 @@ adb logcat -d -s MASWE_0007 | grep "Vector 4"
 
 Expected: a line of the form `Vector 4: ECB Pattern Leak -> B1: <hex> == B2: <hex>` in which the two hex strings are equal. ECB mode encrypts every 16-byte block on its own with no linking, so identical plaintext blocks become identical ciphertext blocks. This is the precondition for the famous ECB penguin picture: patterns in the plaintext stay visible in the ciphertext.
 
+![Steps 4 and 5 in one terminal: identical ciphertexts and equal ECB blocks](images/lab-07/terminal-steps-4-5.png)
+
 ### 6. Optional: let the project's checker confirm it
 
 If you have the project repository on this machine:
@@ -115,7 +125,7 @@ If you have the project repository on this machine:
 bash features/maswe0007/poc/adb_verify.sh
 ```
 
-Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0007 / CWE-327):` followed by the DES line, the zero-IV line, the ECB line, and a `recovered plaintext:` line that the script decoded itself. It also reports which of the other vectors it saw.
+Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0007 / CWE-327):` followed by the DES line, the zero-IV line, the ECB line, and a `recovered plaintext:` line that the script decoded itself. If vectors 3, 5, or 6 were also tapped, it adds a line naming what it captured.
 
 ---
 

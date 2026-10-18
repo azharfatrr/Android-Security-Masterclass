@@ -54,7 +54,7 @@ Complete [Lab 00: Set up your lab machine](setup.md). It takes about 15 minutes 
 | [Lab 04](lab-04-hardcoded-secrets.md) | MASWE-0004 | The Key That Never Left the Office | 25 min | ✅ Ready |
 | [Lab 05](lab-05-what-the-logs-remember.md) | MASWE-0005 | What the Logs Remember | 30 min | ✅ Ready |
 | [Lab 06](lab-06-the-backup-that-took-everything.md) | MASWE-0006 | The Backup That Took Everything | 30 min | ✅ Ready |
-| [Lab 07](lab-07-encryption-in-name-only.md) | MASWE-0007 | Encryption in Name Only | 30 min | 🧪 Awaiting proof run |
+| [Lab 07](lab-07-encryption-in-name-only.md) | MASWE-0007 | Encryption in Name Only | 30 min | ✅ Ready |
 
 Status: 🧪 draft waiting for a clean proof run · ✅ every step confirmed on a clean emulator · ⚠️ known issue, see the lab notes.
 
