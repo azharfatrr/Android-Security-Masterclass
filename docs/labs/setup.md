@@ -4,7 +4,7 @@
 |---|---|
 | **Time** | ~15 minutes |
 | **Goal** | An emulator, a working `adb`, and the vulnerable app installed |
-| **You need** | A laptop · one of the emulators below · the app package (given to you, or built from source) |
+| **You need** | A laptop · one of the emulators below · the app package (downloaded from the release, or built from source) |
 
 !!! warning "Read the lab rules first"
     The rules that apply to every lab (authorized use, evidence, hints) are on the [Labs overview](index.md#before-you-conduct-any-lab). Read them before you set anything up.
@@ -64,13 +64,17 @@ emulator-5554   device
 
 There are two ways to get the app. Use the one that applies to you.
 
-=== "You were given an APK"
+=== "Download the APK"
 
-    From the terminal, in the folder that contains `app-vulnerable-debug.apk`:
+    Download `app-vulnerable-debug.apk` from [the lab releases page](https://github.com/azharfatrr/Android-Security-Masterclass/releases).
+
+    From the terminal, in the folder that contains the APK:
 
     ```bash
     adb install -r app-vulnerable-debug.apk
     ```
+
+    The release page also lists `app-secure-debug.apk` and `app-attacker-debug.apk`. No lab uses those; you only need `app-vulnerable-debug.apk`.
 
 === "Build it yourself"
 
