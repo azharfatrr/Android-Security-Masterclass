@@ -63,6 +63,16 @@ nav:
   - 📊 Security Taxonomy: multi_authority_security_taxonomy.md
   - 🛡️ About & Roadmap: about.md
   - 🔍 SAST Pipeline: sast_pipeline.md
+  - 🧪 Hands-on Labs:
+      - Overview: labs/index.md
+      - "Lab 00: Setup": labs/setup.md
+      - "Lab 01: Insecure Private Storage": labs/lab-01-insecure-private-storage.md
+      - "Lab 02: External Storage Leak": labs/lab-02-outside-the-sandbox.md
+      - "Lab 03: Keys Outside Keystore": labs/lab-03-spare-key-under-the-mat.md
+      - "Lab 04: Hardcoded Secrets": labs/lab-04-hardcoded-secrets.md
+      - "Lab 05: Logging Leaks": labs/lab-05-what-the-logs-remember.md
+      - "Lab 06: Backup Exposure": labs/lab-06-the-backup-that-took-everything.md
+      - "Lab 07: Improper Encryption": labs/lab-07-encryption-in-name-only.md
   - 🏆 MASTG Best Practices:
       - MASTG-BEST-0002 ProGuard: mastg-best/MASTG-BEST-0002-ProGuard.md
   - 🗄️ MASVS-STORAGE:
