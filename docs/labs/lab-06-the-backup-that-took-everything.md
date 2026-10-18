@@ -47,6 +47,8 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0006` r
 
 The module lists four vectors. This lab taps three of them, in this order: the ADB backup vector, the migration vector, and the cloud backup vector. The fourth is covered in section G.
 
+![The MASWE-0006 screen with its four vector buttons](images/lab-06/maswe0006-buttons.png){ width="380" }
+
 ### 3. The file the ADB backup vector leaves
 
 Tap the second button: `2. ADB Local Backup (adb backup)`. Then find what it wrote:

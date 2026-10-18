@@ -47,6 +47,8 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0005` r
 
 The module lists five vectors. This lab uses the first three; the last two belong to the SDK and WebView sinks covered in the reference page.
 
+![The MASWE-0005 screen with its five vector buttons](images/lab-05/maswe0005-buttons.png){ width="380" }
+
 Tap the first button: `1. Trigger System Console Leak`. If a toast complains about a missing attacker app, ignore it; it repeats on every tap, and the leak happens regardless.
 
 ### 3. Inspect the recent log entries
