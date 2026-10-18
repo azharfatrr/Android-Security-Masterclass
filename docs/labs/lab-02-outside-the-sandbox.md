@@ -161,7 +161,7 @@ Submit these through your training channel. No long report is needed.
 ## F · Stuck?
 
 ??? question "Hint 1: Permission denied on the folder"
-    - Some emulator images restrict `/sdcard/Android/data` from the shell user. Lab 00 picks an image without the Play Store so `adb root` works. Run `adb root`, wait for the restart, then repeat the command.
+    - Some emulator images restrict `/sdcard/Android/data` from the shell user. If yours does and it allows `adb root` (images without the Play Store do; Lab 00's default), run it, wait for the restart, then repeat the command.
     - This only applies to the read steps. If step 1 printed `No such file or directory`, that is not a permission problem; the folder simply does not exist yet.
 
 ??? question "Hint 2: the folder is still missing after the tap"

@@ -22,14 +22,14 @@ Use one of the two options and stay with it for your labs.
     1. Install Android Studio (the current release; this project is built with AGP 9.2 and **SDK 37**, so an up-to-date Studio is required).
     2. Open **Device Manager** → **Create device** and pick any recent phone (Pixel 7 is a safe choice).
     3. For the system image, choose **API 34 or newer**.
-    4. For later labs, choose an image **without the Google Play Store** (for example *Google APIs* or *AOSP*). These images allow `adb root`, which the storage labs need.
+    4. For later labs, an image **without the Google Play Store** (for example *Google APIs* or *AOSP*) is a good default: the log stays quiet, and `adb root` is available as a fallback if a step asks for it. Any image works, though: the labs read app-private files through the debug build's `run-as`, which needs no root.
     5. Finish the wizard and start the emulator.
 
 === "Genymotion"
 
     1. Install Genymotion with a recent Android image (API 34+).
     2. Start the device.
-    3. In the Genymotion settings for that device, enable **root**. The labs that read app-private files need it. Lab 04 does not.
+    3. In the Genymotion settings for that device, enabling **root** is optional: the labs read app-private files through the debug build's `run-as`, which needs no root.
 
 ## Step 2: Check adb
 
