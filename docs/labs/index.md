@@ -9,15 +9,15 @@ Every lab uses the same seven sections.
 | Section | What it is for |
 |---|---|
 | A · Mission | What you are hunting. It does not give away the location. |
-| B · Steps | The actions and commands you run. |
-| C · Look & tell | Questions you answer yourself, in your own words. |
-| D · Prove it | The check that turns "I saw something" into "I found it". |
+| B · Steps | The commands and taps you run. |
+| C · Look & tell | Questions you answer in your own words. |
+| D · Prove it | What your output must show for the finding to count. |
 | E · Your evidence | The screenshots and short description you hand in. |
 | F · Stuck? | Hints, in order, that get you unstuck without the answer. |
 | G · Reveal | What you found and why it matters. Open it after section E. |
 
 !!! tip "Read the answer last"
-    Capture your evidence before you open the Reveal. Reading the answer first spoils the exercise.
+    Capture your evidence before you open the Reveal.
 
 ## Before you conduct any lab
 
