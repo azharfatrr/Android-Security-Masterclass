@@ -45,6 +45,13 @@ Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0003` r
 !!! note "One label lies"
     The row subtitle may read something with SECURE in it. That is a bug in this training build. The screen title bar is what counts: `MASWE-0003 (VULNERABLE)`.
 
+The module lists three vectors. This lab needs the first and the third:
+
+![The MASWE-0003 screen with its three vector buttons](images/lab-03/maswe0003-buttons.png){ width="380" }
+
+!!! warning "The result cards hand you the answer"
+    After each tap the card prints the path or the log command you are meant to find. Treat it as a spoiler: run your own commands first, and read the card only if you are stuck.
+
 Tap the first button: `1. Key in SharedPreferences / File`.
 
 ### 3. Look again
@@ -61,7 +68,7 @@ Expected: a new file, `crypto_key.xml`. That is the app's SharedPreferences stor
 adb shell "run-as com.hasantuncay.mobsec cat shared_prefs/crypto_key.xml"
 ```
 
-Expected: a small XML file with one entry, `<string name="aes_key">` followed by a base64 value. The value is long and may wrap across lines; the next command handles that. The app generated an AES key and wrote the encoded bytes straight to disk. The write is asynchronous, so if the entry is missing, wait a second and read again.
+Expected: a small XML file with one entry, `<string name="aes_key">` followed by a base64 value. The value sits on one line, and a trailing encoded newline (`&#10;`) and spaces can follow inside the element; the next command handles that. The app generated an AES key and wrote the encoded bytes straight to disk. The write is asynchronous, so if the entry is missing, wait a second and read again.
 
 ### 5. Prove it is a real key, not a note
 
@@ -74,6 +81,8 @@ adb exec-out run-as com.hasantuncay.mobsec cat shared_prefs/crypto_key.xml | gre
 The `grep` pulls the base64 run out of the XML, the decoder turns it back into bytes, and `wc -c` counts them.
 
 Expected: `32`. That is the raw length of an AES-256 key in bytes. The file does not describe a key; it holds the key, in a form anyone who reads the file can decode and use.
+
+![Steps 3, 4 and 5 in one terminal: the key file, the XML, and the decoded byte count](images/lab-03/terminal-steps-3-5.png)
 
 ### 6. Catch the second copy in the log
 
@@ -92,6 +101,8 @@ adb logcat -d -s MASWE_0003_KEY_IMPORT
 ```
 
 Expected: a line reading `Importing key: ` followed by a plain, readable string. That is key material written into the system log for anyone with log access to find. If the dump is empty, tap the button again and rerun the command immediately.
+
+![Step 6 in the terminal: the log line with the imported key](images/lab-03/terminal-step-6.png)
 
 ### 7. Optional: let the project's checker confirm it
 
