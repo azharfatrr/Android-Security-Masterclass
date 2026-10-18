@@ -10,15 +10,15 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    Every button on this screen claims to encrypt something. Every one of those outputs lands in the system log. Section E tells you exactly what to capture as proof.
+    Collect the demonstrations' outputs from the system log and test what they reveal about the original data. Section E lists what to submit.
 
 ---
 
 ## A · Requirement
 
-The point of encryption is that the output is useless to anyone without the key. Whether that holds depends on the scheme, the key handling, and the randomness, none of which shows on a button label.
+The app should use encryption that protects data from someone who lacks the key. That requires an appropriate algorithm and mode, protected keys, and correct use of IVs or nonces. An unreadable output alone does not establish those protections.
 
-Your job: trigger the operations, collect what each one writes to the log, and break what can be broken. Finally you decode what the app calls encrypted text back into the original password, using nothing but your terminal.
+Run the demonstrations and collect their log output. Reverse the XOR/Base64 operation to recover the password, then compare repeated AES-CBC ciphertexts and the blocks produced by ECB.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -36,7 +36,7 @@ adb logcat -c
 
 Open **🎯 MobSec Victim**, expand `MASVS-CRYPTO`, and open the `MASWE-0007` row.
 
-!!! note "One label lies"
+!!! note "Incorrect dashboard subtitle"
     The row subtitle reads `MASWE-0007: Secure Implementation`. That is a bug in this training build. The screen marks itself `MASWE-0007 (VULNERABLE)`.
 
 ### 2. Tap, then read what the app writes
@@ -58,7 +58,7 @@ Then dump the module's log stream:
 adb logcat -d -s MASWE_0007
 ```
 
-Expected: one line per tap, each starting `Vector N:`. Note the tag: `MASWE_0007`, with an underscore. The four lines hand you ciphertext in two encodings:
+Expected: one line per tap, each starting `Vector N:`. The tag is `MASWE_0007`, with an underscore. The outputs use Base64 and hex:
 
 - Vector 1 prints a Base64 string for a DES operation.
 - Vector 2 prints a hex string for an AES-CBC operation.
@@ -67,11 +67,11 @@ Expected: one line per tap, each starting `Vector N:`. Note the tag: `MASWE_0007
 
 ![Step 2 in one terminal: the dump with the four Vector lines](images/lab-07/terminal-step-2.png)
 
-The ciphertexts prove nothing on their own. Breaking them is the next three steps.
+The next three checks test whether you can recover plaintext or identify repeated input from these outputs.
 
-### 3. Break the first one: the XOR claim
+### 3. Reverse the XOR/Base64 operation
 
-Vector 7 is not encryption: it flips every byte of a secret with a single constant and Base64-encodes the result, with no key and no randomness involved. Undo it in two commands.
+Vector 7 applies a constant XOR value to each byte and Base64-encodes the result. Reverse those operations using the constant supplied below.
 
 First, pull the Base64 string out of the log line into a shell variable:
 
@@ -80,7 +80,7 @@ B64=$(adb logcat -d -s MASWE_0007 | grep "Vector 7" | tail -n 1 | sed 's/.*Base6
 printf '%s\n' "$B64"
 ```
 
-You should see one clean Base64 string. Do not paste it into your report as-is; it is the thing you are about to break.
+Expected: one Base64 string without surrounding log text. Keep it in the shell variable for the decoding command.
 
 Now decode it and flip every byte back with the same constant, `0x5A`:
 
@@ -88,24 +88,24 @@ Now decode it and flip every byte back with the same constant, `0x5A`:
 printf '%s' "$B64" | base64 -d | od -An -tu1 | tr ' ' '\n' | grep . | while read -r b; do printf "\\x$(printf '%02x' $((b ^ 0x5A)))"; done; echo
 ```
 
-Expected: a readable string, the same kind of password this training app keeps in its data classes. You just recovered the original value from text the app called encrypted, without any key. Note in your own words that it worked; keep the string out of your report text and let the screenshot carry it.
+Expected: the original password as readable text. Record how you recovered it without a separately protected key. Include the recovered value in your screenshot, but omit it from the written report.
 
 ![Step 3 in one terminal: the extraction, the decode pipeline, and the recovered plaintext](images/lab-07/terminal-step-3.png)
 
 !!! tip "Where does 0x5A come from?"
-    One constant XOR is easy to lift from the app binary (Lab 04 skills apply), and it is also the only unknown in a 256-value search: try every byte until the output reads like text. A one-byte secret is not much to guess.
+    The constant can be extracted from the app binary using the inspection techniques from Lab 04. Alternatively, try all 256 possible byte values and inspect the decoded outputs for readable text.
 
-### 4. Break the second one: no randomness
+### 4. Compare repeated AES-CBC outputs
 
-Vector 2 claims AES-CBC, a real cipher. Look at what it produces. Tap `2. Reused / Hardcoded IV (AES-CBC)` a second time, then compare the two ciphertexts:
+Tap `2. Reused / Hardcoded IV (AES-CBC)` a second time, then compare its two ciphertexts:
 
 ```bash
 adb logcat -d -s MASWE_0007 | grep "Vector 2" | tail -n 2
 ```
 
-Expected: two lines with the identical hex string. Same input, same output, every time. A sound scheme never does that: it mixes fresh random data (an IV or nonce) into every operation so that encrypting the same text twice looks completely different. Here the randomness is a hardcoded all-zero block, so equal plaintexts stay equal, and an attacker who sees two matching ciphertexts learns exactly which plaintexts matched.
+Expected: two lines with the same hex string. This AES-CBC demonstration reuses an all-zero IV, so encrypting the same input with the same key produces the same ciphertext. AES-CBC needs a fresh, unpredictable IV for each encryption. With the fixed IV used here, a reader can identify matching plaintexts by comparing ciphertexts.
 
-### 5. Break the third one: structure survives
+### 5. Compare the ECB blocks
 
 Vector 4 encrypts a text block that repeats itself and prints both halves:
 
@@ -133,9 +133,9 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0007 / CWE-327):` followe
 
 Answer these in your notes before moving on:
 
-1. ✍️ In step 3 you held both the "encrypted" string and the original password, and you never saw a key. Write one sentence you would send a developer who called that operation encryption.
-2. ✍️ In step 4, two encryptions of the same text produced the same output. Name the property a sound scheme is missing here, and one thing an attacker learns from the repeat.
-3. ✍️ All four outputs you collected came from the system log. Which single practice would have kept this module's "ciphertext" out of your hands, even with its broken math?
+1. ✍️ In step 3, you recovered the password using the logged string and a fixed XOR constant. Explain why that operation does not adequately protect the password.
+2. ✍️ In step 4, two encryptions of the same text produced the same output. What was wrong with the IV handling, and what could an attacker learn from the repeated output?
+3. ✍️ All four outputs came from the system log. What logging change would have prevented this way of collecting them? Would that change also fix the encryption weaknesses?
 
 ---
 
@@ -162,7 +162,7 @@ Hand in:
 2. 📷 Screenshot 2: the step 3 commands and their output, with the recovered string readable.
 3. 📷 Screenshot 3: the step 4 comparison, the step 5 line, or both.
 4. ✍️ Two or three sentences, in your own words:
-   - which weaknesses you showed (a missing key, missing randomness, visible structure),
+   - which weaknesses you showed (a fixed XOR constant, a reused IV, and repeated ECB blocks),
    - why "the output looks unreadable" is not the same claim as "the data is protected",
    - one real-world consequence of encrypting with a scheme like vector 7's.
 
@@ -193,33 +193,33 @@ Submit these through your training channel. No long report is needed.
 ## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
-    Your screenshots are the evidence, not this section. Read it last.
+    Complete your answers and capture your evidence before opening the explanation.
 
 ??? question "What each button really does"
     This is **MASWE-0007**, covering **CWE-327** (broken algorithm) with **CWE-326** (inadequate strength), **CWE-329** (predictable IV), and **CWE-323** (key reuse) roots.
 
-    The module ships seven demonstrations. What the code actually does, in the same order the buttons appear:
+    The seven demonstrations use these operations:
 
-    1. DES with the key `insecure`, an eight-byte English word. DES has a 56-bit effective key; it belongs in a museum.
+    1. DES with the key `insecure`, an eight-byte English word. DES has a 56-bit effective key, which is inadequate for protecting sensitive data.
     2. AES-CBC with the key `1234567890123456` and an all-zero IV, so the output is a pure function of the input.
-    3. AES-CBC with the key `FixedSecretKey12` and a constant IV, no authentication tag: the classic padding-oracle setup. The button advertises an oracle the demo never actually runs; the dangerous pattern is what it stands for.
+    3. AES-CBC with the key `FixedSecretKey12`, a constant IV, and no authentication tag. This pattern can allow padding-oracle attacks when an implementation exposes distinguishable padding errors. The demonstration does not run an oracle.
     4. AES-ECB with the key `16ByteKeyForECB!` on a doubled 16-byte block, which is why your two blocks matched.
     5. DES again, with an eight-byte key of all `0x42`.
-    6. One RSA-2048 pair used both to encrypt and to sign. It is generated fresh per tap, so what you saw is the anti-pattern, not a live key.
+    6. One RSA-2048 pair used both to encrypt and to sign. The pair is generated fresh per tap; the demonstration concerns reuse across purposes, without exposing the key.
     7. XOR with `0x5A` plus Base64, the one you reversed by hand.
 
-    Every key above is a literal in the app binary. Anyone who unpacks the APK (Lab 04 territory) can lift all of them, and anyone reading the log has the ciphertexts. The outputs look scrambled, and that is what makes the pattern dangerous: looking encrypted is not the same as being encrypted.
+    The symmetric keys and XOR constant listed above are literals in the app binary and can be recovered from the APK using the techniques from Lab 04. The ciphertexts are available in the log. Their unreadable appearance does not show whether the algorithm or key handling protects the original data.
 
     Why it matters:
 
     - Deterministic encryption leaks equality: equal ciphertexts tell an attacker the plaintexts matched, and chosen-plaintext attacks build on that.
-    - ECB preserves structure block by block, and real data (records, images, tokens) is full of structure to preserve.
-    - CBC without a MAC is one distinguishable error message away from a padding oracle.
-    - A key that lives in the package is shared with everyone who installs the app.
+    - ECB reveals repeated blocks in structured data, including records, images, and tokens.
+    - CBC without authentication can allow a padding oracle if error responses distinguish padding failures.
+    - A hardcoded key can be extracted by anyone who obtains the app package.
 
     What the secure app does instead:
 
-    The `:app-secure` implementation uses AES-256-GCM with a fresh random nonce per operation and separate key material per purpose, and it hands nothing sensitive to the logger.
+    The `:app-secure` implementation uses AES-256-GCM with a fresh random nonce per operation and separate key material for each purpose. It does not log sensitive values.
 
     Go deeper:
 

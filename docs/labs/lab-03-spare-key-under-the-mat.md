@@ -10,15 +10,15 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    The app creates the key material when you tap its buttons; tracking down the copies it leaves behind is your work. Section E tells you exactly what to capture as proof.
+    Use the demo buttons to generate and import key material, then inspect the resulting files and logs. Section E lists the evidence to submit.
 
 ---
 
 ## A · Requirement
 
-Android ships a place built for one job: keeping cryptographic keys away from everyone, including the app that uses them. It is called the Keystore, and keys that live there never exist as readable bytes at all. Keys an app generates belong there and nowhere else.
+The app should use the Android Keystore to protect its cryptographic keys. The app can request operations with a Keystore key without reading or exporting the key bytes. Raw keys should not appear in preferences files or logs.
 
-This app makes two copies of its key material. Find both with your own commands, and prove that each one is real key material rather than a reference. Then explain why a copy like that defeats the point of encryption.
+Inspect the two locations used by this app and check whether they contain key bytes or a reference to a protected key. Explain what an attacker could do with the material you recover.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -26,7 +26,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 ## B · Validation
 
-Run everything in one terminal (Git Bash on Windows). Ignore the result card that follows each tap; the commands you run are what count.
+Run everything in one terminal (Git Bash on Windows). Capture the command output rather than the app's result cards.
 
 ### 1. Look before
 
@@ -34,20 +34,20 @@ Run everything in one terminal (Git Bash on Windows). Ignore the result card tha
 adb shell run-as com.hasantuncay.mobsec ls -la shared_prefs
 ```
 
-Expected: a short listing, or `No such file or directory` if this is your first storage lab. Note what you see; you are taking a snapshot.
+Expected: a short listing, or `No such file or directory` if this is your first storage lab. Save the output to compare with step 3.
 
 ### 2. Make the app store its key
 
 Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0003` row.
 
-!!! note "One label lies"
+!!! note "Incorrect dashboard subtitle"
     The row subtitle may read something with SECURE in it. That is a bug in this training build. The screen title bar is what counts: `MASWE-0003 (VULNERABLE)`.
 
 The module lists three vectors. This lab needs the first and the third:
 
 ![The MASWE-0003 screen with its three vector buttons](images/lab-03/maswe0003-buttons.png){ width="380" }
 
-!!! warning "The result cards hand you the answer"
+!!! warning "Inspect the output before reading the result cards"
     After each tap the card prints the path or the log command you are meant to find. Treat it as a spoiler: run your own commands first, and read the card only if you are stuck.
 
 Tap the first button: `1. Key in SharedPreferences / File`.
@@ -58,7 +58,7 @@ Tap the first button: `1. Key in SharedPreferences / File`.
 adb shell run-as com.hasantuncay.mobsec ls -la shared_prefs
 ```
 
-Expected: a new file, `crypto_key.xml`. That is the app's SharedPreferences store, and its name already says what is inside.
+Expected: a new SharedPreferences file named `crypto_key.xml`.
 
 ### 4. Read the stored key
 
@@ -68,9 +68,9 @@ adb shell "run-as com.hasantuncay.mobsec cat shared_prefs/crypto_key.xml"
 
 Expected: a small XML file with one entry, `<string name="aes_key">` followed by a base64 value. The value sits on one line, and a trailing encoded newline (`&#10;`) and spaces can follow inside the element; the next command handles that. The app generated an AES key and wrote the encoded bytes straight to disk. The write is asynchronous, so if the entry is missing, wait a second and read again.
 
-### 5. Prove it is a real key, not a note
+### 5. Decode and count the key bytes
 
-A reference or an alias would not survive decoding. This value does:
+Decode the stored value and check its length:
 
 ```bash
 adb exec-out run-as com.hasantuncay.mobsec cat shared_prefs/crypto_key.xml | grep -o -E '[A-Za-z0-9+/]{40,}={0,2}' | head -n 1 | base64 -d | wc -c
@@ -78,13 +78,13 @@ adb exec-out run-as com.hasantuncay.mobsec cat shared_prefs/crypto_key.xml | gre
 
 The `grep` pulls the base64 run out of the XML, the decoder turns it back into bytes, and `wc -c` counts them.
 
-Expected: `32`. That is the raw length of an AES-256 key in bytes. The file does not describe a key; it holds the key, in a form anyone who reads the file can decode and use.
+Expected: `32`, the byte length of an AES-256 key. The app stored the encoded key bytes, so a reader can decode and use them.
 
 ![Steps 3, 4 and 5 in one terminal: the key file, the XML, and the decoded byte count](images/lab-03/terminal-steps-3-5.png)
 
-### 6. Catch the second copy in the log
+### 6. Inspect the imported key in the log
 
-Clear the log buffer so nothing else drowns your line:
+Clear earlier log entries before running the import:
 
 ```bash
 adb logcat -c
@@ -175,20 +175,20 @@ Submit these through your training channel. No long report is needed.
 ## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
-    Your screenshots are the evidence, not this section. Read it last.
+    Complete your answers and capture your evidence before opening the explanation.
 
 ??? question "Why the key left copies behind"
     This is **MASWE-0003**, covering **CWE-312** (cleartext storage) and **CWE-321** (hardcoded cryptographic key).
 
-    Vector 1 generated a fresh AES-256 key, encoded it with `Base64.DEFAULT`, and stored it in `shared_prefs/crypto_key.xml` under the name `aes_key`. The key exists as readable bytes, so the app is not protecting it; it is only keeping it tidy. Vector 3 wrote more key material to the system log with one `Log.d` call, where debug sessions, bug reports, and logging pipelines copy it around.
+    Vector 1 generated a fresh AES-256 key, encoded it with `Base64.DEFAULT`, and stored it in `shared_prefs/crypto_key.xml` under the name `aes_key`. Base64 encoding leaves the key recoverable by anyone who can read the file. Vector 3 passed key material to `Log.d`, exposing it to debugging sessions, bug reports, and logging pipelines.
 
-    Vector 2 completes the set: a key hardcoded as a byte array in the app's bytecode. It never touches the disk, it ships with the app, and tools like jadx or apktool recover it in seconds.
+    Vector 2 hardcodes a key as a byte array in the app's bytecode. This copy ships in the app package and can be recovered with tools such as jadx or apktool.
 
     Why it matters:
 
-    - The key sits in a preferences file and in the log, so anyone who images the device, collects the logs, or unpacks the package comes away with it.
+    - A device image can expose the preferences key, collected logs can expose the imported key, and the APK contains the hardcoded key from vector 2.
     - Keys outside the Keystore lose the hardware protections: attestation, non-exportability, and the option to require user authentication.
-    - Rotation becomes guesswork, because you can never prove where copies ended up.
+    - Rotating the app's key does not remove copies already collected from files, logs, or packages.
 
     What the secure app does instead:
 

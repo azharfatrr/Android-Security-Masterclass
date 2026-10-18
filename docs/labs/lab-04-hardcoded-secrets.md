@@ -10,19 +10,19 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    You work through this alone and at your own pace. Nobody tells you where the secret is, and the app is not going to hand it to you. You pull the app package off your emulator and look through it with your own commands. Section E tells you exactly what to capture as proof.
+    Inspect the installed APK for a payment secret. You can complete this lab without opening the app or reading its source code. Section E lists what to submit.
 
 ---
 
 ## A · Requirement
 
-Apps need secrets to talk to their backend, and those secrets should be fetched at runtime, not shipped inside the app package. The package goes to every device that installs the app.
+The app should not contain a reusable backend secret in its package. Anyone who obtains the APK can inspect its contents. Access credentials should be obtained at runtime, with a limited lifetime.
 
 Pull the app off your emulator and look through the package with your own commands. Recover the payment secret, then explain in your own words what an attacker could do with it.
 
-For this lab you never need to open the app on the emulator. The package is the target.
+You do not need to open the app on the emulator for these checks.
 
-Do not read the project source code. Attack the app the way a real attacker would, with only the package that is already on the device.
+Do not read the project source code. Work from the installed package.
 
 ---
 
@@ -74,27 +74,27 @@ wc -l case0004-strings.txt
 
 `-a` tells grep to read the binary file as text, `-o` prints only the matched words, and `-h` hides file names. The pattern keeps every run that starts with a letter and is at least eight characters long.
 
-Expected: `wc -l` prints a large number. Several hundred thousand lines is normal for a debug build this size; the proofing build produced about 655,000. The extraction is rough by design; a few junk characters can stick to the ends of lines. That does not matter.
+Expected: `wc -l` prints a large number. The build used to verify this lab produced about 655,000 lines. The pattern can include unrelated characters at the ends of strings; check these when copying a candidate value.
 
-### 5. Hunt for the secret
+### 5. Search for the payment secret
 
-Search the text for the word developers use for exactly this kind of value:
+Search the extracted strings for candidate secret names and values:
 
 ```bash
 grep -i "secret" case0004-strings.txt
 ```
 
-Expected: a long list. The proofing build printed 488 hits, and most are identifiers from the Tink and BouncyCastle libraries bundled with the app. Pipe the command into `less` to page through it, or add `| head -n 40` for a first look; the pair you want is near the bottom.
+Expected: a long list. The build used to verify this lab printed 488 hits, mostly identifiers from the bundled Tink and BouncyCastle libraries. Pipe the command into `less` to page through it, or add `| head -n 40` for an initial sample. The payment-secret name and value are near the bottom of the full list.
 
 ![Steps 4 and 5 in one terminal: the line count, the hit count, and the start of the noisy list](images/lab-04/terminal-steps-4-5.png)
 
-You are looking for a pair. One line is a name in capital letters that says what the value is, and one line is a long value that reads like a generated key. This lab is about a payment secret.
+Look for an uppercase name referring to a payment secret and a long value that resembles a generated key.
 
-Write both down in a notes file. If other lines in the list also look like leaks, keep them; the payment secret is what this lab grades, and extra finds go in your description.
+Record the name and value in your notes. You may include other suspected leaks in your description, but the required finding is the payment secret.
 
 ### 6. Prove the value ships inside the code
 
-Take the exact value from step 5 and ask grep which dex file carries it:
+Search for the exact value from step 5 to identify the dex file containing it:
 
 ```bash
 grep -a -l "<the value you copied>" case0004/classes*.dex
@@ -104,7 +104,7 @@ Expected: one or more file names, for example `case0004/classes.dex`. That file 
 
 ### 7. Optional: let the project's checker confirm it
 
-If you have the project repository on this machine, the module ships a script that automates the same hunt. Run it from the root of the repository, with your emulator connected:
+If you have the project repository on this machine, run the module's verification script from the repository root with your emulator connected:
 
 ```bash
 bash features/maswe0004/poc/adb_verify.sh
@@ -182,7 +182,7 @@ Submit these through your training channel. No long report is needed.
 ## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
-    Your screenshots are the evidence, not this section. Read it last.
+    Complete your answers and capture your evidence before opening the explanation.
 
 ??? question "Why the secret was in the package"
     This is **CWE-798: Use of Hard-coded Credentials**.
@@ -191,14 +191,14 @@ Submit these through your training channel. No long report is needed.
 
     Why it matters:
 
-    - Anyone who installs or downloads the app can extract the value with common tools. Nothing encrypts it; the package hides it only until someone looks.
+    - Anyone who installs or downloads the app can extract the unencrypted value with common tools.
     - A leaked payment secret can lead to fraud or account takeover, depending on what it unlocks.
-    - The secret cannot be rotated without shipping a new build, and by then copies are everywhere.
+    - Replacing the hardcoded value requires a new build. Existing APKs still contain the old value.
     - The module demonstrates three more hardcoding habits: secrets in `strings.xml` or assets, secrets in third-party SDK configuration, and staging endpoints left in release builds.
 
     What the secure app does instead:
 
-    The `:app-secure` implementation ships no secrets. It fetches short-lived tokens from a backend at runtime and keeps them in memory, so there is nothing in the package worth extracting.
+    The `:app-secure` implementation fetches short-lived tokens from a backend at runtime and keeps them in memory. It does not embed the backend secret in the package.
 
     Go deeper:
 

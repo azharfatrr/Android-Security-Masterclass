@@ -10,15 +10,15 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    Modern phones move app data on their own: to the user's cloud on a schedule, to a new phone during migration, and, where the platform still allows it, to a laptop over `adb backup`. From the device, you will show which settings allow backup and which sensitive files are in scope. Section E tells you exactly what to capture as proof.
+    Check whether the installed app allows backups and which sensitive files are in scope. You will also try a local backup; the result depends on your Android image. Section E lists what to submit.
 
 ---
 
 ## A · Requirement
 
-Backups are the quietest data channel on a phone. The user never opens an app to make one, and the data leaves without the app being asked. One manifest switch decides whether an app's data is in scope, and a list of rules decides what gets excluded. Sensitive files have to be named in the exclusion rules.
+The app should exclude sensitive files from cloud backups and device-to-device transfers. Backup settings include a manifest flag and rules for individual files. These need to protect the data even when a backup runs without the app open.
 
-Start from your terminal: read the platform's own record of the switch, then make the app write its files, find them in the locations backups cover, and read what is inside.
+Check the installed package's backup flag, then run the demonstrations and inspect the files they create in backup locations. Record the sensitive values and the result of the local backup attempt.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -28,7 +28,7 @@ Do not read the project source code. Use the installed app and your terminal.
 
 Run everything in one terminal (Git Bash on Windows). Ignore the app's result cards and work from the commands on this page.
 
-### 1. Read the switch before you touch the app
+### 1. Check the installed package's backup flag
 
 Android tracks whether an app is in scope for backup as a flag on the installed package:
 
@@ -42,7 +42,7 @@ Expected: one or two lines of the form `flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA A
 
 Open **🎯 MobSec Victim**, expand `MASVS-STORAGE`, and open the `MASWE-0006` row.
 
-!!! note "One label lies"
+!!! note "Incorrect dashboard subtitle"
     The row subtitle reads `MASWE-0006: Secure Implementation`. That is a bug in this training build. The screen title bar is what counts: `MASWE-0006 (VULNERABLE)`.
 
 The module lists four vectors. This lab taps three of them, in this order: the ADB backup vector, the migration vector, and the cloud backup vector. The fourth is covered in section G.
@@ -61,7 +61,7 @@ Expected: a new file `maswe0006_local_backup_vault.db`, and inside it one line r
 ![Steps 1 and 3 in one terminal: the ALLOW_BACKUP flag, the file listing, and the vault line](images/lab-06/terminal-step-1.png)
 
 !!! tip "The `.db` file is not a database"
-    The file ends in `.db`, but it is not a SQLite database. It is one line of plain text. Do not try to open it in a database browser; `cat` tells you everything.
+    This demonstration writes a single plaintext line to a file with a `.db` extension. Read it with `cat`; a SQLite browser cannot open it as a database.
 
 ### 4. The file the migration vector leaves
 
@@ -71,7 +71,7 @@ Tap the third button: `3. Device-to-Device Migration`. Then:
 adb exec-out run-as com.hasantuncay.mobsec cat files/maswe0006_migration_credentials.json
 ```
 
-Expected: a JSON object with two keys. `refreshToken` holds a base64 value, and `masterKey` holds a value starting with `0x`. Phone migration is meant to move a user's data to a new device; it should not move this.
+Expected: a JSON object with two keys. `refreshToken` holds a base64 value, and `masterKey` holds a value starting with `0x`. Both are credentials that should be excluded from the migration.
 
 ### 5. The file the cloud backup vector leaves
 
@@ -84,9 +84,9 @@ adb shell "run-as com.hasantuncay.mobsec cat shared_prefs/maswe0006_cloud_backup
 
 Expected: a file named `maswe0006_cloud_backup_session.xml` with two entries, `auth_token` (the JWT-looking value again) and `user_email`, a personal email address in plain text. The write is asynchronous, so if the entry is missing, wait a second and read again.
 
-### 6. Try the extraction the vector is named after
+### 6. Attempt a local backup
 
-This is the step where the platform gets a vote. Ask it to pack the app's data into a backup archive:
+Try creating an archive with the platform's backup command:
 
 ```bash
 adb backup -f maswe0006_loot.ab -noapk com.hasantuncay.mobsec
@@ -99,7 +99,7 @@ A dialog appears on the emulator asking to back up your data. Confirm it (no pas
 Two outcomes are normal:
 
 - **An archive appears.** Check it with `ls -l maswe0006_loot.ab`. The first bytes are readable: `head -c 24 maswe0006_loot.ab` prints `ANDROID BACKUP`, which is the format's magic string. You now hold the app's data on your laptop.
-- **The platform refuses.** On many Android 12 and newer images, `adb backup` answers `Backup disabled` or returns an empty file. That refusal is the platform's default hardening, not your mistake. Note the exact message and move on; the finding from steps 1 through 5 does not depend on this archive.
+- **The platform refuses.** On many Android 12 and newer images, `adb backup` answers `Backup disabled` or returns an empty file. Record that outcome and continue. Steps 1 through 5 still document the backup flag and sensitive files; this refusal limits what you can demonstrate about local extraction on this image.
 
 ![Step 6 in one terminal: the backup command, the archive listing, and the ANDROID BACKUP header](images/lab-06/terminal-step-6.png)
 
@@ -119,7 +119,7 @@ Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0006 / CWE-200):` followe
 
 Answer these in your notes before moving on:
 
-1. ✍️ The `dumpsys` flag is a setting, not a file. With that switch on and no exclusion rules, list the channels this app's data can travel through without the app ever running again.
+1. ✍️ With the `dumpsys` backup flag enabled and no exclusion rules, which backup or transfer channels can copy this app's stored data? Note any platform restrictions you observed.
 2. ✍️ Two files are named `.db` and `.sqlite`, and a result card promised a database browser would open them. What is really inside, based on your own output?
 3. ✍️ A backup is made by the user and belongs to the user. Explain why the app should still keep card data out of the archive.
 
@@ -133,7 +133,7 @@ You have the finding when all four are true:
 |---|---|
 | The step 1 output | The platform has the app flagged as backup-eligible, with no special handling visible in the dump |
 | The steps 3 to 5 outputs | Card data, session keys, and a personal email sit in plaintext inside `files/` and `shared_prefs/`, the standard backup scope |
-| The step 6 outcome | Either a real archive with `ANDROID BACKUP` in its header, or the platform's refusal; record which, and note that the finding survives either way |
+| The step 6 outcome | Whether local extraction produced an archive with `ANDROID BACKUP` in its header or was refused; distinguish this result from the flag and file checks |
 | Section C, questions 1 to 3 | Your explanation of the channels and the impact |
 
 If you ran step 7, its output is a second, independent confirmation of the same artifacts. Attach it as well.
@@ -173,14 +173,14 @@ Submit these through your training channel. No long report is needed.
     - If you got an archive and want to look inside, this trick often works in Git Bash:
       `( printf "\x1f\x8b\x08\x00\x00\x00\x00\x00" ; tail -c +25 maswe0006_loot.ab ) | tar -ztvf - | head -n 30`
       It may print warnings and exits nonzero after the list, because the truncated stream is expected; your app's file names above the error are the result. If nothing lists, the archive header and size remain your evidence.
-    - Never delete the archive as "useless"; it is evidence of the channel, even when the platform refuses to make one.
+    - Keep any output file and record its size, even if the backup failed. Include the refusal message in your notes.
 
 ---
 
 ## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
-    Your screenshots are the evidence, not this section. Read it last.
+    Complete your answers and capture your evidence before opening the explanation.
 
 ??? question "Why the backup scope was wide"
     This is **MASWE-0006**, covering **CWE-200** (information exposure) with **CWE-312** roots.
@@ -192,13 +192,13 @@ Submit these through your training channel. No long report is needed.
     Why it matters:
 
     - Cloud Auto Backup runs without the app's involvement. A compromised cloud account can leak app data with no device access at all.
-    - Device-to-device transfer clones credentials to a new phone, a channel that rarely gets the scrutiny of an app review.
-    - `adb backup` on an attached laptop turns any unlocked workstation into an extraction point. Android 12 and newer narrow this path for normal apps (targetSdk 31 and up), so the flag and the rule files remain necessary.
+    - Device-to-device transfer can copy the stored credentials to a new phone unless the app excludes them.
+    - Where supported, `adb backup` can copy app data to an attached laptop. Android 12 and newer restrict this path for normal apps (targetSdk 31 and up); that restriction does not replace the app's backup flag and exclusion rules.
     - Card data in any of these channels is also a PCI-DSS problem; the standard treats storage and backup together.
 
     What the secure app does instead:
 
-    The `:app-secure` manifest sets `android:allowBackup="false"`, its rule files exclude the sensitive entries explicitly, and the module's secure repository pre-encrypts its data with AES-256-GCM before it goes anywhere near a backup scope.
+    The `:app-secure` manifest sets `android:allowBackup="false"`, and its rule files explicitly exclude sensitive entries. The secure repository also encrypts its stored data with AES-256-GCM.
 
     Go deeper:
 

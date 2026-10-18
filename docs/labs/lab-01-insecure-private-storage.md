@@ -10,7 +10,7 @@
 | **Needs** | [Lab rules](index.md#before-you-conduct-any-lab) read · [Lab 00: Setup](setup.md) complete · **🎯 MobSec Victim** installed · `adb` working |
 
 !!! info "Self-paced lab"
-    You work through this alone and at your own pace. The app does one thing for you here: it stores the data when you tell it to. Everything after that tap is yours to investigate with your own commands. Section E tells you exactly what to capture as proof.
+    Tap the demo buttons to create the test data, then inspect the files from your terminal. Use your command output as evidence. Section E lists what to submit.
 
 ---
 
@@ -18,9 +18,9 @@
 
 The app stores a signed access token that authenticates the user. It should keep the token where nothing outside the app can read it, and its encryption keys should be just as private.
 
-Make the app store the token, then find it on disk with your own commands and read the value out. Then find the app's own attempt at encryption and check where its key ended up.
+Store a token in the app and check whether you can read it from disk. For the encrypted record, locate the key and check whether the same access lets you read it too.
 
-The app has a screen full of demo buttons that write the data. They do not answer the question of what landed on disk, and one of them may even print a path on screen.
+The demo buttons may display file paths and a result summary. Verify those claims by inspecting the files yourself.
 
 Do not read the project source code. Use the installed app and your terminal.
 
@@ -41,10 +41,10 @@ adb shell run-as com.hasantuncay.mobsec ls -la files/datastore
 
 `run-as` opens the app's private folder as the app itself. It works because Lab 00 installs a debug build. On a normal phone, the same read needs root.
 
-Expected: the first command lists a short set of entries, or prints `No such file or directory`. The second usually prints `No such file or directory`. Either way, note what you see. You are taking a snapshot.
+Expected: the first command lists a short set of entries, or prints `No such file or directory`. The second usually prints `No such file or directory`. Save this output so you can compare it with the listing after the write.
 
 !!! tip "The app writes a result card after every button"
-    Ignore it. It repeats what the demo was built to say. Your evidence comes from your terminal, not from the app's summary of itself.
+    Leave the result card unread until you have inspected the files. Capture your terminal output for the evidence in section E.
 
 ### 2. Make the app store the value
 
@@ -54,7 +54,7 @@ Open **🎯 MobSec Victim**. The dashboard groups modules by category. Tap `MASV
 
 Then open the `MASWE-0001` row.
 
-!!! note "One label lies"
+!!! note "Incorrect dashboard subtitle"
     The row subtitle reads `MASWE-0001: Private Storage (SECURE)`. That wording is a bug in this training build. The screen title bar is what counts, and it says `MASWE-0001 (VULNERABLE)`.
 
 The module screen lists six vectors. This lab uses the first and the third:
@@ -76,7 +76,7 @@ Expected: `files` now contains a `datastore` directory, and inside it is one fil
 -rw------- 1 u0_a2XX u0_a2XX  1234 2026-..-.. ..:.. maswe0001_v1.preferences_pb
 ```
 
-That file did not exist a minute ago. The button you tapped is the only thing that changed.
+Compare this with step 1 to identify the file created by the button tap.
 
 ### 4. Read the stored value
 
@@ -90,20 +90,20 @@ Expected: a single line containing `auth_token` and a value that begins with `ey
 
 ![Steps 3 and 4 in one terminal: the new file and the token line](images/lab-01/terminal-steps-3-4.png)
 
-No `grep` output means one of two things: you listed the wrong folder, or the button tap did not land. Tap the vector again, count to two, and rerun the command.
+If `grep` prints nothing, check the file path and tap the vector again. Wait two seconds, then rerun the command.
 
-### 5. Make the app try to encrypt something
+### 5. Create an encrypted record
 
 Go back to the app screen and tap the third button: `3. Encryption Key Stored on Filesystem`.
 
-### 6. Find the pair
+### 6. Locate the encrypted record and key file
 
 ```bash
 adb shell run-as com.hasantuncay.mobsec ls -la files
 adb shell run-as com.hasantuncay.mobsec ls -la shared_prefs
 ```
 
-Expected: `files` gained `maswe0001_v3.enc`, and `shared_prefs` gained `maswe0001_v3_keys.xml`. Those two names are a pair. One holds encrypted data; the other holds the thing that unlocks it. `shared_prefs` may also hold unrelated XML files from earlier app starts; only the new `maswe0001_v3_keys.xml` matters here.
+Expected: `files` gained `maswe0001_v3.enc`, and `shared_prefs` gained `maswe0001_v3_keys.xml`. These contain the encrypted record and its key, respectively. Ignore unrelated XML files from earlier app starts.
 
 ### 7. Read the key
 
@@ -123,7 +123,7 @@ If you have the project repository on this machine, the module ships a script th
 bash features/maswe0001/poc/adb_verify.sh
 ```
 
-Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0001 / CWE-312):` followed by the files it could read, including the one from step 4. The script also checks the other storage vectors' files, so the report can list more than the two you created. Anything extra is a bonus find, not part of the exercise.
+Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0001 / CWE-312):` followed by the files it could read, including the one from step 4. The script also checks files from other storage vectors. Those additional results are not required for this lab.
 
 ---
 
@@ -160,7 +160,7 @@ Hand in:
 2. 📷 Screenshot 2: the step 6 listing and the step 7 key file.
 3. ✍️ Two or three sentences, in your own words:
    - what was stored without encryption and where,
-   - why the encrypted file from vector 3 does not save the situation,
+   - why storing the key this way leaves the encrypted record exposed,
    - one concrete thing an attacker could do with the token.
 
 Submit these through your training channel. No long report is needed.
@@ -189,22 +189,22 @@ Submit these through your training channel. No long report is needed.
 ## G · Explanation
 
 !!! warning "Open only after sections C and E are done"
-    Your screenshots are the evidence, not this section. Read it last.
+    Complete your answers and capture your evidence before opening the explanation.
 
 ??? question "What happened on disk"
-    This is **CWE-312: Cleartext Storage of Sensitive Information**, the core of MASWE-0001.
+    MASWE-0001 covers CWE-312: Cleartext Storage of Sensitive Information.
 
-    Vector 1 wrote an OAuth-style bearer token into a Jetpack DataStore file (`files/datastore/maswe0001_v1.preferences_pb`) with no encryption applied. DataStore is a tidy container, not a safe; anyone who can read the file reads the token.
+    Vector 1 wrote an OAuth-style bearer token into a Jetpack DataStore file (`files/datastore/maswe0001_v1.preferences_pb`) without encryption. The protobuf format stores readable token bytes, which is why the text search recovered the value.
 
-    Vector 3 is the one that catches people out. The app did encrypt the record with AES, then stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Anyone who can read the storage gets both halves, and that includes root malware, a forensic image, or a rooted inspection like yours.
+    Vector 3 encrypted the record with AES but stored the AES key in `shared_prefs/maswe0001_v3_keys.xml`. Access to both locations allows an attacker to copy the ciphertext and the key needed to decrypt it. Root malware or a forensic image can provide that access, as did your inspection of this debug build.
 
     The module demonstrates four more storage habits on its other buttons: a key hardcoded in the app package, AES in ECB mode, a FileProvider whose path config maps far more of the filesystem than it should, and a cache file that is never deleted.
 
     Why it matters:
 
     - Tokens recovered from storage authenticate as the user until they expire or are revoked.
-    - "It is in private storage" is not a defense once the device is rooted, imaged, or the build is debuggable. The data needs encryption with a key the attacker cannot reach.
-    - An encryption key stored on the same filesystem as its ciphertext travels with the ciphertext wherever it goes.
+    - Private storage restricts ordinary app access. Root access, a device image, or debugging access can still expose the files, so sensitive data needs encryption with a separately protected key.
+    - Copying both the key file and the encrypted record defeats the protection demonstrated in vector 3.
 
     What the secure app does instead:
 
