@@ -48,10 +48,18 @@ Expected: the first command lists a short set of entries, or prints `No such fil
 
 ### 2. Make the app store the value
 
-Open **🎯 MobSec Victim**. The dashboard groups modules by category. Tap `MASVS-STORAGE` to expand it, then open the `MASWE-0001` row.
+Open **🎯 MobSec Victim**. The dashboard groups modules by category. Tap `MASVS-STORAGE` to expand it:
+
+![The dashboard with MASVS-STORAGE expanded](images/lab-01/dashboard-storage-expanded.png){ width="360" }
+
+Then open the `MASWE-0001` row.
 
 !!! note "One label lies"
     The row subtitle reads `MASWE-0001: Private Storage (SECURE)`. That wording is a bug in this training build. The screen title bar is what counts, and it says `MASWE-0001 (VULNERABLE)`.
+
+The module screen lists six vectors. This lab uses the first and the third:
+
+![The MASWE-0001 screen with its six vector buttons](images/lab-01/maswe0001-buttons.png){ width="380" }
 
 Tap the first button: `1. Data Stored Unencrypted (Cleartext)`.
 
@@ -62,7 +70,7 @@ adb shell run-as com.hasantuncay.mobsec ls -la files
 adb shell run-as com.hasantuncay.mobsec ls -la files/datastore
 ```
 
-Expected: `files` now contains a `datastore` directory, and inside it there is one file, `maswe0001_v1.preferences_pb`, next to its lock file. Owner, size, and date are whatever your emulator reports; the name is the part that matters.
+Expected: `files` now contains a `datastore` directory, and inside it is one file, `maswe0001_v1.preferences_pb`. Some DataStore versions also leave a small lock file next to it; this one does not. Owner, size, and date are whatever your emulator reports; the name is the part that matters.
 
 ```text
 -rw------- 1 u0_a2XX u0_a2XX  1234 2026-..-.. ..:.. maswe0001_v1.preferences_pb
@@ -80,6 +88,8 @@ adb exec-out run-as com.hasantuncay.mobsec cat files/datastore/maswe0001_v1.pref
 
 Expected: a single line containing `auth_token` and a value that begins with `eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9`. A few unprintable bytes from the protobuf wrapper may sit around it. Copy the `eyJ...` run into your notes exactly; in this training data it ends with three dots.
 
+![Steps 3 and 4 in one terminal: the new file and the token line](images/lab-01/terminal-steps-3-4.png)
+
 No `grep` output means one of two things: you listed the wrong folder, or the button tap did not land. Tap the vector again, count to two, and rerun the command.
 
 ### 5. Make the app try to encrypt something
@@ -93,7 +103,7 @@ adb shell run-as com.hasantuncay.mobsec ls -la files
 adb shell run-as com.hasantuncay.mobsec ls -la shared_prefs
 ```
 
-Expected: `files` gained `maswe0001_v3.enc`, and `shared_prefs` gained `maswe0001_v3_keys.xml`. Those two names are a pair. One holds encrypted data; the other holds the thing that unlocks it.
+Expected: `files` gained `maswe0001_v3.enc`, and `shared_prefs` gained `maswe0001_v3_keys.xml`. Those two names are a pair. One holds encrypted data; the other holds the thing that unlocks it. `shared_prefs` may also hold unrelated XML files from earlier app starts; only the new `maswe0001_v3_keys.xml` matters here.
 
 ### 7. Read the key
 
@@ -102,6 +112,8 @@ adb shell "run-as com.hasantuncay.mobsec cat shared_prefs/maswe0001_v3_keys.xml"
 ```
 
 Expected: a small XML file with one entry, `<string name="aes_key">` followed by a long base64 value. That value is the AES key the app used for `maswe0001_v3.enc`. It sits in the same storage, one folder over, in the clear.
+
+![Steps 6 and 7 in one terminal: the encrypted file, the key file, and the key in the clear](images/lab-01/terminal-steps-6-7.png)
 
 ### 8. Optional: let the project's checker confirm it
 
