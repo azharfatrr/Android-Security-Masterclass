@@ -74,7 +74,7 @@ wc -l case0004-strings.txt
 
 `-a` tells grep to read the binary file as text, `-o` prints only the matched words, and `-h` hides file names. The pattern keeps every run that starts with a letter and is at least eight characters long.
 
-Expected: `wc -l` prints a large number. Tens of thousands of lines is normal for an app this size. The extraction is rough by design; a few junk characters can stick to the ends of lines. That does not matter.
+Expected: `wc -l` prints a large number. Several hundred thousand lines is normal for a debug build this size; the proofing build produced about 655,000. The extraction is rough by design; a few junk characters can stick to the ends of lines. That does not matter.
 
 ### 5. Hunt for the secret
 
@@ -84,7 +84,11 @@ Search the text for the word developers use for exactly this kind of value:
 grep -i "secret" case0004-strings.txt
 ```
 
-Expected: a short list of lines. You are looking for a pair. One line is a name in capital letters that says what the value is, and one line is a long value that reads like a generated key. The mission is about a payment secret.
+Expected: a long list. The proofing build printed 488 hits, and most are identifiers from the Tink and BouncyCastle libraries bundled with the app. Pipe the command into `less` to page through it, or add `| head -n 40` for a first look; the pair you want is near the bottom.
+
+![Steps 4 and 5 in one terminal: the line count, the hit count, and the start of the noisy list](images/lab-04/terminal-steps-4-5.png)
+
+You are looking for a pair. One line is a name in capital letters that says what the value is, and one line is a long value that reads like a generated key. The mission is about a payment secret.
 
 Write both down in a notes file. If other lines in the list also look like leaks, keep them; the payment secret is what this lab grades, and extra finds go in your description.
 
@@ -106,10 +110,10 @@ If you have the project repository on this machine, the module ships a script th
 bash features/maswe0004/poc/adb_verify.sh
 ```
 
-It pulls the installed app again, scans it for known secret formats, and prints what it finds. You can also point it at the file you already have:
+It pulls the installed app again, scans it for known secret formats, and prints what it finds. You can also point it at the file you already have. Pass the path to your copy, because a bare file name only resolves from the folder that holds it:
 
 ```bash
-bash features/maswe0004/poc/adb_verify.sh case0004.apk
+bash features/maswe0004/poc/adb_verify.sh /path/to/case0004.apk
 ```
 
 Expected: `[!] CRITICAL VULNERABILITY CONFIRMED (MASWE-0004 / CWE-798):` followed by the values it found, including the one you extracted by hand. The script may also flag other hardcoded leftovers in the app. Note anything it caught that your manual search missed.
@@ -171,6 +175,7 @@ Submit these through your training channel. No long report is needed.
     - Rerun step 4 if `wc -l case0004-strings.txt` did not print a large number.
     - Lines that start with `L` are library type names. Skip them.
     - The pair you want is one name in capitals and one long value with underscores and digits. The mission says payment, so one of the names should say it too.
+    - To shrink the list without reading all of it: `grep -i "secret" case0004-strings.txt | grep -i payment`.
 
 ---
 
